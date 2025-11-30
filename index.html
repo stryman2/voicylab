@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Voicing Finder</title>
+    <title>VoicyLab</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Include Tone.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
@@ -35,7 +35,7 @@
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             -webkit-font-smoothing:antialiased;
             -moz-osx-font-smoothing:grayscale;
-            background-image: url('https://raw.githubusercontent.com/stryman2/voicylab/refs/heads/main/public/vintage-guitar.webp');
+            background-image: url('https://raw.githubusercontent.com/stryman2/voicylab/refs/heads/main/public/vintage-guitar.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -332,22 +332,45 @@
         }
         #find-voicing-strict{ background: linear-gradient(90deg,var(--accent-1), var(--accent-2)); color:#042427; }
         #find-voicing-flexible{ background: linear-gradient(90deg,var(--accent-2), var(--accent-3)); color:#061222; }
-        #play-voicing-button{ background: linear-gradient(90deg,#ff9a8b,#ff6a88); color:#000; }
-        #store-voicing-button{ background: linear-gradient(90deg,#8b7cff,#6b52f9); color:#000; }
+        /* Dark grey action buttons (darker than the previous neutral grey) */
+        #play-voicing-button{
+            background: linear-gradient(180deg,#374151,#111217);
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        #play-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        #store-voicing-button{
+            background: linear-gradient(180deg,#374151,#111217);
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        #store-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
         /* Ensure Play / Store buttons use black text for contrast */
         #play-voicing-button,
         #store-voicing-button {
-            color: #000 !important;
+            color: #cccccc !important;
             text-shadow: none !important; /* remove any pale text-shadow that reduces contrast */
         }
 
         /* Ensure the icon inside the button is also black */
         #play-voicing-button i,
         #store-voicing-button i {
-            color: #000 !important;
+            color: #f8f7f7 !important;
         }
 
         .button-container button:hover{ transform:translateY(-4px); filter:brightness(1.04); }
+        /* Make Generate look like the other action buttons */
+        #generate-voicing-button{ background: linear-gradient(180deg,#374151,#111217); color:#f8f8f8; border: 1px solid rgba(255,255,255,0.04); }
+        #generate-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        /* Small action row beneath the search buttons: half-height buttons */
+        .small-action-row{ display:flex; gap:12px; justify-content:center; margin-top:10px; margin-bottom:16px; }
+        .small-action-row button{
+            height:20px; padding:0 8px; border-radius:8px; border:0; cursor:pointer;
+            font-weight:800; letter-spacing:0.2px; box-shadow: 0 6px 14px rgba(2,6,18,0.30);
+            transition:all var(--transition); font-size:11px; line-height:1; display:inline-flex; align-items:center; gap:6px;
+            padding-top:2px; padding-bottom:2px;
+        }
+        .small-action-row button i{ font-size:10px; }
 
         .output-section{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:18px; }
         /* allow the SVG to size itself based on number of frets; center it */
@@ -629,8 +652,8 @@
         </g>
     </svg>
     <div>
-                <div class="logo-title">Voicing Finder</div>
-                <div class="logo-sub">Fast chord predictions · beautiful voicing display</div>
+                <div class="logo-title">VoicyLab</div>
+                <div class="logo-sub"></div>
             </div>
         </div>
 
@@ -720,11 +743,7 @@
 
             <div class="cv-nav" aria-hidden="true"></div>
         </div>
-        <div class="generate-voicing-container">
-            <button id="generate-voicing-button" class="side-btn generate-btn" aria-label="Generate Initial Voicing">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>&nbsp;&nbsp;Generate Voicing
-            </button>
-        </div>
+        <!-- Old generate button removed; new Generate button lives in the action row below the fretboard -->
 
         <div class="input-section" aria-label="Fret and string range">
             <div style="display:flex; gap:12px; align-items:center;">
@@ -749,8 +768,11 @@
         <div class="button-container" role="group" aria-label="Actions">
             <button id="find-voicing-strict"><i class="fa-solid fa-magnifying-glass"></i>&nbsp;&nbsp;Strict Search</button>
             <button id="find-voicing-flexible"><i class="fa-solid fa-filter"></i>&nbsp;&nbsp;Flexible Search</button>
+        </div>
+        <div class="small-action-row" role="group" aria-label="Quick actions">
             <button id="play-voicing-button"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Play Chord</button>
             <button id="store-voicing-button"><i class="fa-solid fa-bookmark"></i>&nbsp;&nbsp;Store Position</button>
+            <button id="generate-voicing-button"><i class="fa-solid fa-wand-magic-sparkles"></i>&nbsp;&nbsp;Generate Voicing</button>
         </div>
 
         <div class="output-section" role="region" aria-label="Voicing output">
@@ -782,7 +804,7 @@
     <div id="help-modal-overlay" aria-hidden="true">
         <div id="help-modal-content" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
             <button class="help-close" aria-label="Close help">&times;</button>
-            <h2 id="help-modal-title">Welcome to Voicing Finder!</h2>
+            <h2 id="help-modal-title">Welcome to Voicylab!</h2>
             <p>This app is a creative partner that helps you discover new possibilities on the guitar. It does two main things: finds every possible way to play a chord, and predicts the perfect next chord in a harmonic progression.</p>
 
             <h3>🎸 How to Find a Chord Voicing?</h3>
@@ -1264,19 +1286,79 @@
             return result;
         }
 
-        function sortVoicings(voicings) {
-            return voicings.sort((a,b)=>{
-                const fretsA = a.map(v=>v.fret), fretsB = b.map(v=>v.fret);
-                const spanA = Math.max(...fretsA) - Math.min(...fretsA);
-                const spanB = Math.max(...fretsB) - Math.min(...fretsB);
-                const sA = a.map(v=>v.string).sort((x,y)=>x-y), sB = b.map(v=>v.string).sort((x,y)=>x-y);
-                let jumpsA=0, jumpsB=0;
-                for(let i=1;i<sA.length;i++) if(sA[i]-sA[i-1]>1) jumpsA++;
-                for(let i=1;i<sB.length;i++) if(sB[i]-sB[i-1]>1) jumpsB++;
-                if(jumpsA===0 && jumpsB>0) return -1;
-                if(jumpsA>0 && jumpsB===0) return 1;
-                if(spanA!==spanB) return spanA - spanB;
-                return jumpsA - jumpsB;
+ function sortVoicings(voicings) {
+            // Helper to calculate voicing stats
+            function getStats(voicing) {
+                const frets = voicing.map(v => v.fret);
+                const strings = voicing.map(v => v.string).sort((a, b) => b - a); 
+                
+                const minF = Math.min(...frets);
+                const maxF = Math.max(...frets);
+                
+                // תיקון: חישוב Span כוללני (Inclusive). 
+                // דוגמה: שריגים 1-5 יחשבו כ-Span 5 (במקום 4).
+                // זה דוחף אקורדים "רחבים" יותר להיררכיה נמוכה יותר.
+                const span = maxF - minF + 1;
+
+                let skips = 0;
+                for (let i = 0; i < strings.length - 1; i++) {
+                    const diff = Math.abs(strings[i] - strings[i+1]);
+                    if (diff > 1) {
+                        skips += (diff - 1);
+                    }
+                }
+                return { span, skips, minFret: minF };
+            }
+
+            // Assign Tier based on user hierarchy (עודכן לחישוב Span החדש)
+            function getTier(span, skips) {
+                // 1. No skips, Span <= 4 (למשל שריגים 2-5, שזה טווח של 4)
+                if (skips === 0 && span <= 4) return 1;
+                
+                // 2. 1 skip, Span <= 3 (קומפקטי מאוד עם דילוג)
+                if (skips === 1 && span <= 3) return 2;
+                
+                // 3. No skips, Span == 5 (למשל שריגים 1-5. זה המקרה של no7.png)
+                if (skips === 0 && span === 5) return 3;
+                
+                // 4. 1 skip, Span == 4
+                if (skips === 1 && span === 4) return 4;
+                
+                // 5. 2 skips, Span <= 4
+                if (skips === 2 && span <= 4) return 5;
+                
+                // 6. 1 skip, Span == 5
+                if (skips === 1 && span === 5) return 6;
+                
+                // 7. 2 skips, Span == 5
+                if (skips === 2 && span === 5) return 7;
+                
+                // 8. No skips, Span == 6 (מתיחות גדולות)
+                if (skips === 0 && span === 6) return 8;
+                
+                // 9. Everything else
+                return 9;
+            }
+
+            return voicings.sort((a, b) => {
+                const statsA = getStats(a);
+                const statsB = getStats(b);
+
+                const tierA = getTier(statsA.span, statsA.skips);
+                const tierB = getTier(statsB.span, statsB.skips);
+
+                // Primary Sort: Tier
+                if (tierA !== tierB) {
+                    return tierA - tierB;
+                }
+
+                // Secondary Sort: Prefer shorter span within the same tier
+                if (statsA.span !== statsB.span) {
+                    return statsA.span - statsB.span;
+                }
+
+                // Tertiary Sort: Prefer lower fret position
+                return statsA.minFret - statsB.minFret;
             });
         }
 
@@ -1539,22 +1621,42 @@ function displayCurrentVoicing() {
         nextButton.disabled = currentVoicingIndex >= allVoicings.length - 1;
         [playVoicingButton, storeVoicingButton].forEach(b => b.disabled = false);
 
-        // Update info panel: identify chord from visible input notes and show current voicing
+        // Update info panel
         const chordId = vl_identifyChord(noteInputs.map(n=>n.value));
         const title = chordId ? `${chordId.root} ${chordId.type}` : 'Voicing';
         updateVoicingInfo({ title, currentVoicing: voicing, targetChordPcs: chordId ? chordId.notes : null });
 
     } else {
-        // --- If there are NO results (The Empty State) ---
-        emptyState.style.display = 'flex'; // Show the message
+        // --- If there are NO results (The Empty/Error State) ---
+        emptyState.style.display = 'flex'; // Show the message container
         fretboard.style.display = 'none'; // Hide the fretboard
-        outputControls.style.display = 'none'; // Hide the nav buttons
+        outputControls.style.display = 'none'; // Hide the nav buttons (prev/next)
         
-        // This handles the text after a search finds nothing
         const predictedNotes = noteInputs.map(input => input.value).filter(Boolean);
-        if (predictedNotes.length > 0 && allVoicings.length === 0 && document.activeElement.tagName !== 'INPUT') {
-             optionNumberElement.textContent = `Predicted: ${predictedNotes.join(', ')} (No voicings found)`;
+        
+        // Check if we actually have input notes (meaning a search was attempted)
+        if (predictedNotes.length > 0) {
+             // --- Dynamic Error Message ---
+             // Replaces the diagram with a clear "No Results" message and suggestion
+             emptyState.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 40px; margin-bottom: 15px; opacity: 0.9; color: var(--accent-2);"></i>
+                <h3 style="color: var(--text-on-dark); margin: 0 0 10px 0;">No Strict Voicings Found</h3>
+                <p style="font-size: 1.1em; margin-bottom: 12px; color: var(--text-on-dark);">
+                    Predicted: <span style="font-family: monospace; color: var(--accent-1);">${predictedNotes.join(', ')}</span>
+                </p>
+                <p style="color: var(--muted); max-width: 320px; line-height: 1.5; margin: 0 auto;">
+                    Try expanding the Fret/String range, or use <strong>Flexible Search</strong>.
+                </p>
+             `;
+             // Clear the bottom text since we are showing it in the main area
+             optionNumberElement.textContent = ""; 
         } else {
+            // --- Default Start State ---
+            emptyState.innerHTML = `
+                <i class="fa-solid fa-music" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                <h3 style="margin: 0 0 10px 0; color: var(--text-on-dark);">Find Your First Voicing</h3>
+                <p style="color: var(--muted);">Enter notes above and click 'Next Chord' or 'Strict Search' to begin.</p>
+            `;
             optionNumberElement.textContent = "Enter notes to search";
         }
         
@@ -1699,6 +1801,43 @@ function displayCurrentVoicing() {
             'harmonic minor':['min','dim','aug','min','maj','maj','dim'],
             'melodic minor': ['min','min','aug','maj','maj','dim','dim']
         };
+
+// TBN I specific voice-leading rules (Cycle -> { BassDegree -> { NoteDegree -> { move } } })
+        // Updated with explicit rules for Cycles 2, 3, and 4 based on Mick Goodrick's Almanac
+        const TBN_I_RULES_VL = {};
+
+        // Helper to populate rules for a specific cycle
+        function defineTBNRules(cycleNum, moves) {
+            TBN_I_RULES_VL[cycleNum] = {};
+            for (let bass = 1; bass <= 7; bass++) {
+                TBN_I_RULES_VL[cycleNum][bass] = {};
+                // Calculate absolute scale degrees relative to bass (1, 2, 5, 7)
+                // These are fixed relationships in TBN I:
+                // 1 = Bass
+                // 2 = (Bass + 1) % 7
+                // 5 = (Bass + 4) % 7
+                // 7 = (Bass + 6) % 7
+                
+                // Note: The logic here maps the *function* (1,2,5,7) to the *move*.
+                // Since our mapVoices logic calculates relative degree, we just need to populate
+                // the map for keys 1, 2, 5, 7.
+                
+                // moves keys: '1', '2', '5', '7'
+                if (moves['1']) TBN_I_RULES_VL[cycleNum][bass][1] = { move: moves['1'] };
+                if (moves['2']) TBN_I_RULES_VL[cycleNum][bass][2] = { move: moves['2'] };
+                if (moves['5']) TBN_I_RULES_VL[cycleNum][bass][5] = { move: moves['5'] };
+                if (moves['7']) TBN_I_RULES_VL[cycleNum][bass][7] = { move: moves['7'] };
+            }
+        }
+
+        // Cycle 2 Rules: 1->+1, 2->0 (ct), 5->-2 (-3rd), 7->-1
+        defineTBNRules(2, { '1': 1, '2': 0, '5': -2, '7': -1 });
+        
+        // Cycle 3 Rules: 1->+1, 2->+1, 5->-1, 7->0 (ct)
+        defineTBNRules(3, { '1': 1, '2': 1, '5': -1, '7': 0 });
+
+        // Cycle 4 Rules (Contrary Motion): 1->0 (ct), 2->+1, 5->-1, 7->-2 (-3rd)
+        defineTBNRules(4, { '1': 0, '2': 1, '5': -1, '7': -2 });
 
         function vl_normalize(s){
             if(!s) return '';
@@ -1937,28 +2076,89 @@ function displayCurrentVoicing() {
             }
             return best;
         }
-        function vl_mapVoices(inputVoices, nextChordPcs, dir, vlThresholdSteps, frozenPcsSet, scalePcs){
-            const assigned = new Array(inputVoices.length).fill(null); const used = new Set();
+        function vl_mapVoices(inputVoices, nextChordPcs, dir, vlThresholdSteps, frozenPcsSet, scalePcs, specificRules, ruleContext){
+            const assigned = new Array(inputVoices.length).fill(null);
+            const used = new Set();
+
+            // 1) Preserve frozen pitch-classes (common tones) in place where possible
             for(let i=0;i<inputVoices.length;i++){
                 const raw = inputVoices[i]; const vpc = vl_pc(raw);
-                if(vpc >= 0 && frozenPcsSet.has(vpc)){
-                    if(nextChordPcs.includes(vpc) && !used.has(vpc)){ assigned[i]=vpc; used.add(vpc); continue; }
+                if(vpc >= 0 && frozenPcsSet && frozenPcsSet.has(vpc)){
+                    if(nextChordPcs.includes(vpc) && !used.has(vpc)){
+                        assigned[i]=vpc; used.add(vpc); continue;
+                    }
                     const pick = vl_findClosestInDirection(raw, nextChordPcs, 0, 7, used, scalePcs);
                     if(pick!==null){ assigned[i]=pick; used.add(pick); }
                 }
             }
+
+// 2) If a specific ruleset is provided (e.g., TBN I), apply Relative Degree Voice Leading
+            if(specificRules && scalePcs && scalePcs.length){
+                // Determine active rules based on context (e.g. Cycle)
+                let activeRules = specificRules;
+                if(ruleContext !== undefined && specificRules[ruleContext]){
+                    activeRules = specificRules[ruleContext];
+                }
+
+                // CRITICAL FIX: Calculate degrees RELATIVE to the current Bass note
+                // We assume inputVoices[0] is the bass because we handled that in runPredict for TBN
+                const bassRaw = inputVoices[0];
+                const bassPc = vl_pc(bassRaw);
+                // Find where the bass is in the scale (0-6)
+                let bassScaleIdx = -1;
+                const bIndices = vl_indicesInScale(bassPc, scalePcs);
+                if (bIndices && bIndices.length > 0) bassScaleIdx = bIndices[0];
+
+                if (bassScaleIdx !== -1) {
+                    for(let i=0;i<inputVoices.length;i++){
+                        if(assigned[i] !== null) continue;
+                        const raw = inputVoices[i]; const vpc = vl_pc(raw);
+                        if(vpc < 0) continue;
+                        
+                        const scaleIdxs = vl_indicesInScale(vpc, scalePcs);
+                        if(!scaleIdxs || scaleIdxs.length === 0) continue;
+
+                        // Try mapping based on relative scale degree
+                        for(const si of scaleIdxs){
+                            // Calculate relative degree (1-based): 1..7
+                            // Formula: (NoteIndex - BassIndex + 7) % 7 + 1
+                            // Example: if Bass=C(0), Note=G(4) -> (4-0)=4 -> deg 5.
+                            const relativeDegree = ((si - bassScaleIdx) % 7 + 7) % 7 + 1;
+                            
+                            const rule = activeRules[relativeDegree];
+                            if(!rule) continue;
+
+                            // Apply movement offset to the ABSOLUTE scale index
+                            const targetDegIdx = ((si + rule.move) % 7 + 7) % 7;
+                            const targetPc = scalePcs[targetDegIdx];
+
+                            // Check if the calculated target note is valid in the next chord
+                            if(nextChordPcs.includes(targetPc) && !used.has(targetPc)){
+                                assigned[i] = targetPc;
+                                used.add(targetPc);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3) Fall back to nearest-neighbor / directional matching for remaining voices
             for(let i=0;i<inputVoices.length;i++){
                 if(assigned[i] !== null) continue;
                 const raw = inputVoices[i];
                 const pick = vl_findClosestInDirection(raw, nextChordPcs, dir, vlThresholdSteps, used, scalePcs);
                 if(pick !== null){ assigned[i]=pick; used.add(pick); }
             }
+
+            // 4) Fill any remaining unassigned slots with leftover chord tones
             for(let i=0;i<assigned.length;i++){
                 if(assigned[i]===null){
                     const available = nextChordPcs.filter(p=>!used.has(p));
                     if(available.length>0){ assigned[i]=available[0]; used.add(available[0]); }
                 }
             }
+
             return assigned.filter(v=>v!==null);
         }
 
@@ -2029,8 +2229,24 @@ function displayCurrentVoicing() {
                 if(!pitchClasses || !Array.isArray(pitchClasses)) return pitchClasses;
                 const pcs = pitchClasses.slice();
                 if(pcs.length < 3) return pcs; // nothing meaningful to drop
+                // If the incoming array looks like a TBN I construction (bass, triadRoot, triad3rd, triad5th)
+                // then the musical Drop‑2 voicing we want is: [triad3rd, triad5th, triadRoot, bass]
+                // which for input pcs == [bass, triadRoot, triad3rd, triad5th] becomes [pcs[2], pcs[3], pcs[1], pcs[0]]
+                if(pcs.length >= 4){
+                    // Heuristic: if the first element appears to be the bass (distinct from others)
+                    // then apply the TBN I Drop‑2 ordering which matches the example D F B E.
+                    const bass = pcs[0];
+                    const rest = pcs.slice(1,4);
+                    // simple uniqueness check
+                    const uniq = new Set(pcs.map(p=>((p%12)+12)%12));
+                    if(uniq.size >= 3){
+                        const transformed = [ pcs[2], pcs[3] || pcs[2], pcs[1] || pcs[2], pcs[0] ];
+                        console.log('transformToDrop2 (TBN special-case): before=', pitchClasses, 'after=', transformed);
+                        return transformed;
+                    }
+                }
 
-                // Normalize to 0..11 and build deterministic close ordering (low->high)
+                // Fallback generic algorithm: normalize to 0..11 and build deterministic close ordering (low->high)
                 const normalized = pcs.map(p => ((p % 12) + 12) % 12);
                 // Keep stable ordering for duplicates by tracking original indices
                 const indexed = normalized.map((v,i) => ({v, i, orig: pcs[i]}));
@@ -2073,6 +2289,7 @@ function displayCurrentVoicing() {
         function runPredict(harmonicDirection){
             // Capture current inputs; we'll push to history only if prediction proceeds successfully
             const prePredictSnapshot = noteInputs.map(n => n.value || '');
+            let tbnCurrentBassDegree = null; // Context for TBN I voice leading
 
             const scaleRoot = scaleRootEl.value || 'C';
             const scaleType = (scaleTypeEl.value || 'major').toLowerCase();
@@ -2216,6 +2433,9 @@ function displayCurrentVoicing() {
                     console.log(`TBN I: First time - reading bass from UI: ${currentBaseNote} (degree ${currentBaseDegreeIndex + 1})`);
                 }
 
+                // Store for voice leading context
+                tbnCurrentBassDegree = currentBaseDegreeIndex + 1;
+
                 // Calculate target base degree by applying cycle and direction
                 const targetBaseDegree = ((currentBaseDegreeIndex + (cycleVal * harmonicDirection)) % 7 + 7) % 7;
                 const targetBassNoteName = scale[targetBaseDegree];
@@ -2344,92 +2564,31 @@ function displayCurrentVoicing() {
             const scalePcs = scale.map(vl_pc);
 
             const activeInputVoices = inputVoices.filter(v=>v && v.length>0);
-            
-            // For TBN I, we need special handling: KEEP COMMON TONES IN ORIGINAL POSITIONS
-            let mappedPcs, finalNames;
+            let mappedPcs = null, finalNames = [];
             if (chordTypeVal2 === 'tbn_1') {
-                // TBN I (Mick Goodrick convention): Common tones stay in their original UI positions
-                // Example: C D G B → (next chord has D, C, E, A) → display as C D E A
-                // The book's voice-leading rules:
-                // - Common tones (c.t.) stay in place
-                // - Non-common tones move by the intervallic relationship (2nd, 3rd, etc.)
-                
-                const currentPcs = activeInputVoices.map(vl_pc).filter(v => v >= 0);
-                const nextPcsSet = new Set(nextChordPcs);
-
-                // Special-case for Cycle 3: apply the exact voice-leading pattern required
-                // by the user to obtain the inversion [D, F, B, E] from [E, B, D, F].
-                // That corresponds to ordering: [triad 3rd, triad 5th, triad root, bass]
+                // Special-case: for Cycle 3 we keep the explicit inversion ordering that
+                // was requested (triad 3rd, triad 5th, triad root, bass)
                 if (cycleVal === 3) {
-                    // Ensure we have at least 4 tones in nextChordPcs
                     const padded = nextChordPcs.slice();
                     while (padded.length < 4) padded.push(padded[padded.length - 1] || 0);
-                    // new order: [index 2, index 3, index 1, index 0]
                     mappedPcs = [padded[2], padded[3], padded[1], padded[0]];
-                    finalNames = mappedPcs.map(vl_nameFromPc);
-                    console.log('TBN I Cycle 3 special mapping applied:', finalNames, 'from', nextChordPcs.map(vl_nameFromPc));
                 } else {
-                    // Build the result array, preserving common tones and applying voice-leading rules
-                    const result = new Array(4).fill(null);
-                    const usedNextPcs = new Set();
-
-                    // Step 1: Keep common tones in their original positions
-                    for (let i = 0; i < Math.min(4, currentPcs.length); i++) {
-                        const currentPc = currentPcs[i];
-                        if (nextPcsSet.has(currentPc)) {
-                            result[i] = currentPc;
-                            usedNextPcs.add(currentPc);
-                            console.log(`TBN I: Keeping common tone ${vl_nameFromPc(currentPc)} in position ${i + 1}`);
-                        }
+                    // If the user explicitly selected Drop‑2 voicing, the transformation
+                    // already produced the intended voiced ordering. In that case we
+                    // should preserve the transformed ordering and not re-run the
+                    // rule-driven mapper which can reorder voices.
+                    const selectedVoicingType = (document.getElementById('voicingTypeSelect') || voicingTypeEl) ? ((document.getElementById('voicingTypeSelect') || voicingTypeEl).value || 'default_close') : 'default_close';
+                    if (selectedVoicingType === 'drop2') {
+                        mappedPcs = nextChordPcs.slice();
+                    } else {
+                        // Use the rule-driven mapping for TBN I
+                        mappedPcs = vl_mapVoices(activeInputVoices, nextChordPcs, vlDir, vlInterval, combinedFrozenSet, scalePcs, TBN_I_RULES_VL, tbnCurrentBassDegree);
                     }
-
-                    // Step 2: For non-common-tone positions, apply voice-leading by finding the 
-                    // closest available note in the specified direction
-                    const remainingPcs = nextChordPcs.filter(pc => !usedNextPcs.has(pc));
-
-                    for (let i = 0; i < 4; i++) {
-                        if (result[i] === null && i < currentPcs.length) {
-                            // Find the best voice-leading match for this position
-                            const currentNote = vl_nameFromPc(currentPcs[i]);
-                            const bestMatch = vl_findClosestInDirection(
-                                currentNote,
-                                remainingPcs,
-                                vlDir,
-                                vlInterval,
-                                usedNextPcs,
-                                scalePcs
-                            );
-
-                            if (bestMatch !== null) {
-                                result[i] = bestMatch;
-                                usedNextPcs.add(bestMatch);
-                                console.log(`TBN I: Voice-leading position ${i + 1}: ${vl_nameFromPc(currentPcs[i])} → ${vl_nameFromPc(bestMatch)}`);
-                            }
-                        }
-                    }
-
-                    // Step 3: Fill any remaining nulls with unused nextChordPcs
-                    for (let i = 0; i < 4; i++) {
-                        if (result[i] === null) {
-                            const available = nextChordPcs.filter(pc => !usedNextPcs.has(pc));
-                            if (available.length > 0) {
-                                result[i] = available[0];
-                                usedNextPcs.add(available[0]);
-                            }
-                        }
-                    }
-
-                    mappedPcs = result.filter(v => v !== null);
-                    finalNames = mappedPcs.map(vl_nameFromPc);
-
-                    console.log('TBN I voice-leading (common tones preserved):', 
-                        'current=', currentPcs.map(vl_nameFromPc), 
-                        'next=', nextChordPcs.map(vl_nameFromPc),
-                        'result=', finalNames);
                 }
+                finalNames = mappedPcs.map(vl_nameFromPc);
             } else {
                 // Default behavior for other chord types - apply voice-leading
-                mappedPcs = vl_mapVoices(activeInputVoices, nextChordPcs, vlDir, vlInterval, combinedFrozenSet, scalePcs);
+                mappedPcs = vl_mapVoices(activeInputVoices, nextChordPcs, vlDir, vlInterval, combinedFrozenSet, scalePcs, null);
                 finalNames = mappedPcs.map(vl_nameFromPc);
             }
 
@@ -2485,35 +2644,45 @@ function displayCurrentVoicing() {
                 predictedVoicing: finalNames,
                 currentVoicing: allVoicings && allVoicings.length ? allVoicings[0] : null
             });
-
-            if(allVoicings.length===0){
-                optionNumberElement.textContent = `Predicted: ${finalNames.join(', ')} — No strict voicings found`;
-            } else {
                 displayCurrentVoicing();
-            }
         }
 
         // Next: perform prediction and push the current inputs onto the history stack so we can undo
         if(predictNextBtn) predictNextBtn.addEventListener('click', ()=> runPredict(1));
 
-        // Previous: act as a Back/Undo button. Restore the last inputs from history and run a Strict Search
-        function restorePreviousInputs() {
+function restorePreviousInputs() {
             if(predictHistory.length === 0) {
-                // nothing to restore
                 predictPrevBtn.disabled = true;
                 optionNumberElement.textContent = 'No previous chord in history';
                 return;
             }
             const last = predictHistory.pop();
             setNoteInputsFromArray(last);
-            // After restoring inputs, run strict search to update voicings & fretboard
+            
+            // --- תיקון חדש: סנכרון הזיכרון עם הצעד אחורה ---
+            const chordTypeVal = (document.getElementById('chordTypeSelect') || document.getElementById('chordType')).value;
+            if (chordTypeVal === 'tbn_1' || chordTypeVal === 'tbn_2') {
+                // שחזר את תו הבס מהאינפוט ששוחזר (מניחים שהוא ב-Note1 ב-TBN)
+                const restoredBass = vl_normalize(last[0]);
+                if (restoredBass) {
+                    vl_lastTBN_BassNoteName = restoredBass;
+                    // עדכן גם את האינדקס אם צריך
+                    const scale = vl_getScale(scaleRootEl.value, scaleTypeEl.value);
+                    if (scale) {
+                        const pc = vl_pc(restoredBass);
+                        vl_lastTBN_BassDegree = scale.map(vl_pc).indexOf(pc);
+                    }
+                    console.log(`Prev clicked: TBN memory rolled back to ${restoredBass}`);
+                }
+            }
+            // ------------------------------------------------
+
             allVoicings = findAndFilterVoicingsStrict();
             currentVoicingIndex = 0;
             displayCurrentVoicing();
             predictPrevBtn.disabled = predictHistory.length === 0;
             optionNumberElement.textContent = 'Restored previous chord';
         }
-
         if(predictPrevBtn) {
             predictPrevBtn.addEventListener('click', restorePreviousInputs);
             // initially disabled until there's history
@@ -2682,5 +2851,4 @@ function displayCurrentVoicing() {
 
 
 </html>
-
 
