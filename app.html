@@ -1,0 +1,3133 @@
+<!-- copyright 2025 Alon Segal -->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>VoicyLab</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include Tone.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        /* Visual upgrade: modern, premium look with subtle motion, gradients and improved spacing */
+
+        :root{
+            --bg-outer: linear-gradient(180deg,#0f1720 0%, #161923 40%, #0b0f12 100%);
+            --panel-bg: rgba(255,255,255,0.04);
+            --glass: rgba(255,255,255,0.03);
+            --accent-1: #6EE7B7;
+            --accent-2: #38BDF8;
+            --accent-3: #9B7CFF;
+            --muted: #9aa4b2;
+            --card-bg: #0f1620;
+            --text-on-dark: #E6EEF6;
+            --note-white: #ffffff;
+            --note-shadow: rgba(12,18,24,0.35);
+            --danger: #ef4444;
+            --glass-border: rgba(255,255,255,0.06);
+            --glass-glow: 0 6px 30px rgba(60,120,255,0.05);
+            --transition: 220ms cubic-bezier(.2,.9,.2,1);
+        }
+
+        html,body{
+            min-height: 100%;
+            margin:0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            background-image: url('https://raw.githubusercontent.com/stryman2/voicylab/refs/heads/main/public/vintage-guitar.webp');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color:var(--text-on-dark);
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+            padding-top: 10px;
+            padding-left: 28px;
+            padding-right: 28px;
+            padding-bottom: 28px;
+        }
+
+        .container{
+            width:100%;
+            max-width:1160px;
+            border-radius:18px;
+            padding:26px;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 10px 40px rgba(3,7,14,0.6), 0 1px 0 rgba(255,255,255,0.02) inset;
+            border: 1px solid rgba(255,255,255,0.03);
+            position:relative;
+            overflow:visible;
+        }
+
+        /* theme toggle removed */
+
+        /* Header action buttons (Help + Contact) container */
+        .header-actions{ position:absolute; top:18px; left:18px; display:flex; gap:10px; z-index:20; }
+
+        /* Help + Contact buttons: identical appearance */
+        #help-button, #contact-button{
+            width:40px; height:40px; border-radius:10px; border:0;
+            background:linear-gradient(180deg,#2b2f36,#1b1f24);
+            color:var(--text-on-dark);
+            display:inline-grid; place-items:center; cursor:pointer; font-size:16px;
+            transition:all var(--transition); box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+        }
+        #help-button:hover, #contact-button:hover{ transform:translateY(-3px); }
+
+        /* Help modal overlay + content */
+        #help-modal-overlay{
+            position:fixed;
+            inset:0;
+            background:rgba(2,6,12,0.6);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            opacity:0;
+            visibility:hidden;
+            transition:opacity 220ms ease, visibility 220ms ease;
+            z-index:9999;
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+        }
+        #help-modal-overlay.open{ opacity:1; visibility:visible; }
+
+        #help-modal-content{
+            position:relative;
+            width: min(760px, 92%);
+            max-height: 86vh;
+            overflow:auto;
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+            border:1px solid rgba(255,255,255,0.06);
+            padding:20px 22px;
+            border-radius:14px;
+            color:var(--text-on-dark);
+            box-shadow: 0 20px 60px rgba(2,6,18,0.6);
+            transform: scale(0.98);
+            transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease;
+            opacity:0;
+        }
+        #help-modal-overlay.open #help-modal-content{ transform: scale(1); opacity:1; }
+
+        /* Contact modal shares same styles as help modal */
+        #contact-modal-overlay{
+            position:fixed; inset:0; background:rgba(2,6,12,0.6);
+            display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden;
+            transition:opacity 220ms ease, visibility 220ms ease; z-index:9999;
+            -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+        }
+        #contact-modal-overlay.open{ opacity:1; visibility:visible; }
+
+        #contact-modal-content{
+            position:relative; width: min(760px, 92%); max-height: 86vh; overflow:auto;
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+            border:1px solid rgba(255,255,255,0.06); padding:20px 22px; border-radius:14px; color:var(--text-on-dark);
+            box-shadow: 0 20px 60px rgba(2,6,18,0.6); transform: scale(0.98); transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; opacity:0;
+        }
+        #contact-modal-overlay.open #contact-modal-content{ transform: scale(1); opacity:1; }
+
+        .contact-close{ position:absolute; top:12px; right:14px; background:transparent; border:0; color:var(--muted); font-size:22px; cursor:pointer; }
+        .contact-link{ color:var(--accent-2); font-weight:800; text-decoration:none; }
+
+        .help-close{
+            position:absolute;
+            top:12px;
+            right:14px;
+            background:transparent;
+            border:0;
+            color:var(--muted);
+            font-size:22px;
+            cursor:pointer;
+        }
+        #help-modal-content h2{ margin-top:6px; margin-bottom:6px; }
+        #help-modal-content p{ color:var(--muted); line-height:1.5; }
+        #help-modal-content ul{ margin:8px 0 12px 18px; color:var(--muted); line-height:1.4; }
+
+        /* Mobile: transform help button into a floating action button (FAB) on the bottom-right
+           This avoids overlapping the logo and gives a clear touch target. A small inline label
+           appears while the modal is open or on hover/focus. */
+        @media (max-width: 768px){
+            /* On small screens we keep header actions in the top-left for simplicity. */
+            /* subtle pulse to draw attention on first use */
+            @keyframes help-pulse { 0% { box-shadow: 0 6px 14px rgba(0,0,0,0.3); transform: scale(1); } 50% { box-shadow: 0 18px 38px rgba(56,189,248,0.08); transform: scale(1.03); } 100% { box-shadow: 0 6px 14px rgba(0,0,0,0.3); transform: scale(1); } }
+            #help-button.pulse { animation: help-pulse 2200ms ease-in-out infinite; }
+        }
+
+        /* header logo */
+        .logo-container{ display:flex; align-items:center; gap:2px; justify-content:center; margin-bottom:18px; }
+        .logo-title{ font-weight:450; font-size:28px; color:var(--text-on-dark); letter-spacing:0.0px; }
+        .logo-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+        /* Controls row */
+        .controls-row{
+            display:flex;
+            gap:18px;
+            align-items:center;
+            justify-content:center;
+            flex-wrap:wrap;
+            padding:12px;
+            margin-bottom:18px;
+            border-radius:12px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+            border:1px solid var(--glass-border);
+            box-shadow: var(--glass-glow);
+        }
+
+          /* Make vl-panel a vertical stack of two rows so the top controls are always in two rows
+              (first row: Scale Root, Scale Type, Chord Type; second row: Cycle, VL Interval, Direction)
+              We introduce a helper class .vl-row for each horizontal row. This enforces two permanent
+              rows on desktop while still allowing inner wrapping on very small screens if necessary. */
+          .vl-panel{ display:flex; gap:12px; align-items:center; justify-content:center; flex-direction:column; }
+          .vl-row{ display:flex; gap:14px; align-items:center; justify-content:center; flex-wrap:wrap; }
+        .vl-field{ display:flex; flex-direction:column; align-items:center; gap:8px; min-width:110px; }
+        .vl-field label{ font-size:12px; color:var(--muted); font-weight:700; }
+        .vl-field select, .vl-field input[type="number"]{
+            border-radius:10px;
+            border:0;
+            padding:10px 12px;
+            background:linear-gradient(180deg,#ffffff,#f3f5f7);
+            color:#1b2430;
+            font-weight:700;
+            letter-spacing:0.6px;
+            box-shadow: 0 6px 14px rgba(2,6,10,0.08);
+            min-width:110px;
+            text-align:center;
+        }
+
+        .vl-direction{ display:flex; gap:8px; align-items:center; }
+        .vl-btn{
+            width:40px;height:40px;border-radius:9px;border:0;
+            background:linear-gradient(180deg,#2b2f36,#1b1f24);
+            color:var(--text-on-dark);
+            display:inline-grid;place-items:center;
+            cursor:pointer;font-size:14px;font-weight:800;
+            transition:all var(--transition);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+        }
+        .vl-btn:hover{ transform:translateY(-3px); }
+        .vl-btn.active{
+            background: linear-gradient(90deg,var(--accent-1), var(--accent-2));
+            color:#06202b;
+            box-shadow: 0 10px 30px rgba(56,189,248,0.12), 0 4px 0 rgba(0,0,0,0.25);
+        }
+
+        /* Current Voicing - premium cards style */
+        .current-voicing{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:16px;
+            margin:10px 0 18px 0;
+            flex-wrap:nowrap;
+        }
+
+        .note-square{
+            width:76px;height:76px;
+            min-width:76px;
+            border-radius:14px;
+            background:var(--note-white);
+            color:#0b1220;
+            font-weight:900;
+            font-size:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            box-shadow: 0 12px 30px var(--note-shadow), 0 2px 0 rgba(0,0,0,0.12);
+            border: 1px solid rgba(6,10,16,0.06);
+            transition: transform var(--transition), box-shadow var(--transition);
+            outline:none;
+            text-align:center;
+            font-family: inherit; /* keep same font */
+        }
+        .note-square::placeholder{ color:#9aa4b2; font-weight:800; }
+
+        .note-square:focus{ transform:translateY(-6px) scale(1.02); box-shadow: 0 18px 40px rgba(2,6,18,0.35); }
+
+        .side-btn{
+            height:76px;
+            min-width:110px;
+            border-radius:14px;
+            border:0;
+            cursor:pointer;
+            font-weight:800;
+            font-size:15px;
+            color:#fff;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            letter-spacing:0.6px;
+            transition:all var(--transition);
+            box-shadow: 0 12px 30px rgba(2,6,18,0.45);
+        }
+        .side-btn.prev-btn{
+            background: linear-gradient(180deg,#3f8fb0,#165a78);
+        }
+        .side-btn.next-btn{
+            background: linear-gradient(180deg,#00b37a,#0e7b5e);
+        }
+        .side-btn:hover{ transform:translateY(-4px); filter:brightness(1.03); }
+        .generate-voicing-container {
+            display: flex;
+            justify-content: center;
+            /* מושך את הכפתור קרוב יותר לתיבות התווים */
+            margin: -8px 0 18px 0; 
+        }
+        
+        .side-btn.generate-btn {
+            /* שימוש בצבע הדגשה 3 */
+            background: linear-gradient(180deg, var(--accent-3), #6b52f9);
+            color: #fff;
+            min-width: 240px; /* רוחב נדיב */
+            height: 34px; /* גובה כמו כפתורי הפעולה */
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 26px rgba(107, 82, 249, 0.25);
+        }
+
+        /* התאמה למובייל */
+        @media (max-width: 768px){
+            .generate-voicing-container {
+                width: 100%;
+                margin-top: 0px; /* איפוס מרווח במובייל */
+            }
+            .side-btn.generate-btn {
+                width: 100%;
+                height: 48px;
+            }
+        }
+
+        /* small helper: container for mobile repositioning */
+        .cv-nav{ display:none; gap:10px; }
+
+        /* Inputs + controls area */
+        .input-section{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-bottom:18px; align-items:center; }
+
+        .button-container{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+        .button-container button{
+            height:52px; padding:0 18px; border-radius:12px; border:0; cursor:pointer;
+            font-weight:800; letter-spacing:0.4px; box-shadow: 0 10px 26px rgba(2,6,18,0.45);
+            transition:all var(--transition);
+        }
+        #find-voicing-strict{ background: linear-gradient(90deg,var(--accent-1), var(--accent-2)); color:#042427; }
+        #find-voicing-flexible{ background: linear-gradient(90deg,var(--accent-2), var(--accent-3)); color:#061222; }
+        /* Dark grey action buttons (darker than the previous neutral grey) */
+        #play-voicing-button{
+            background: linear-gradient(180deg,#374151,#111217);
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        #play-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        #store-voicing-button{
+            background: linear-gradient(180deg,#374151,#111217);
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        #store-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        /* Ensure Play / Store buttons use black text for contrast */
+        #play-voicing-button,
+        #store-voicing-button {
+            color: #cccccc !important;
+            text-shadow: none !important; /* remove any pale text-shadow that reduces contrast */
+        }
+
+        /* Ensure the icon inside the button is also black */
+        #play-voicing-button i,
+        #store-voicing-button i {
+            color: #f8f7f7 !important;
+        }
+
+        .button-container button:hover{ transform:translateY(-4px); filter:brightness(1.04); }
+        /* Make Generate look like the other action buttons */
+        #generate-voicing-button{ background: linear-gradient(180deg,#374151,#111217); color:#f8f8f8; border: 1px solid rgba(255,255,255,0.04); }
+        #generate-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        /* Small action row beneath the search buttons: half-height buttons */
+        .small-action-row{ display:flex; gap:12px; justify-content:center; margin-top:10px; margin-bottom:16px; }
+        .small-action-row button{
+            height:20px; padding:0 8px; border-radius:8px; border:0; cursor:pointer;
+            font-weight:800; letter-spacing:0.2px; box-shadow: 0 6px 14px rgba(2,6,18,0.30);
+            transition:all var(--transition); font-size:11px; line-height:1; display:inline-flex; align-items:center; gap:6px;
+            padding-top:2px; padding-bottom:2px;
+        }
+        .small-action-row button i{ font-size:10px; }
+
+        .output-section{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:18px; }
+        /* allow the SVG to size itself based on number of frets; center it */
+        #fretboard-diagram{
+            width:auto;
+            height:180px;
+            max-width:100%;
+            display:block;
+            border-radius:12px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+            border:1px solid rgba(255,255,255,0.02);
+            box-shadow: 0 12px 40px rgba(3,7,14,0.6);
+        }
+        .output-controls{ display:flex; gap:12px; align-items:center; justify-content:center; }
+
+        #option-number{ font-size:15px; font-weight:700; color:var(--muted); }
+
+        /* Saved voicings (more premium card) */
+        .saved-voicings-section{ margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.03); }
+        .saved-voicings-section h3{ margin:0 0 12px 0; font-size:16px; color:var(--text-on-dark); }
+
+        .saved-voicings-container{
+            display:flex;
+            gap:14px;
+            flex-wrap:wrap;
+            align-items:flex-start;
+            justify-content:center;
+        }
+
+        /* Improved saved voicing card sizing and responsive mini-fretboard */
+        .saved-voicing-item{
+            flex: 0 1 260px;
+            min-width:180px;
+            max-width:280px;
+            border-radius:12px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            padding:16px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            box-shadow: 0 10px 30px rgba(2,6,18,0.5);
+            border:1px solid rgba(255,255,255,0.02);
+            transition: transform var(--transition), box-shadow var(--transition);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .saved-voicing-item:hover{ transform:translateY(-6px); box-shadow: 0 18px 48px rgba(2,6,18,0.6); }
+        .saved-voicing-label{
+            font-weight:800;
+            color:var(--accent-1);
+            margin-bottom:8px;
+            font-size:14px;
+            text-transform:uppercase;
+            letter-spacing:0.6px;
+            display:block;
+            width:100%;
+            text-align:center;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        .saved-voicing-item svg{ width:100%; height:120px; margin-bottom:8px; display:block; }
+        .saved-remove-btn{ background:var(--danger); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; }
+
+         .empty-state {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            height: 180px; /* Matches the fretboard height */
+            color: var(--muted);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-on-dark);
+            font-weight: 700;
+        }
+        /* responsive adjustments */
+        @media (max-width: 880px){
+            .container{ padding:18px; }
+            .note-square{ width:64px; height:64px; min-width:64px; font-size:22px; border-radius:12px; }
+            .side-btn{ height:64px; min-width:96px; border-radius:12px; font-size:14px; }
+            .saved-voicing-item{ width:120px; }
+            #fretboard-diagram{ height:220px; }
+        }
+
+        @media (max-width: 768px){
+            
+            /* --- Mobile layout tuned for ~390px (iPhone 12) --- */
+            html, body {
+                padding-left: 12px;
+                padding-right: 12px;
+                -webkit-text-size-adjust: 100%;
+            }
+
+            .container {
+                max-width: 390px; /* match iPhone 12 width */
+                width: 100%;
+                box-sizing: border-box;
+                padding: 14px;
+            }
+
+            /* current voicing stacks vertically and uses full width */
+            .current-voicing{
+                flex-direction:column;
+                gap:12px;
+                align-items:center;
+            }
+            .note-square{
+                width:80%;
+                height:56px;
+                min-width:unset;
+                font-size:18px;
+                border-radius:10px;
+                box-shadow: 0 8px 20px rgba(2,6,18,0.38);
+            }
+
+            /* place prev/next into cv-nav bar */
+            .cv-nav{ display:flex; justify-content:center; gap:10px; margin-top:6px; }
+
+            /* buttons stack and are full width to avoid overflow */
+            .button-container{
+                flex-direction:column;
+                gap:10px;
+                width:100%;
+            }
+            .button-container button{
+                width:100%;
+                height:48px;
+                font-size:14px;
+                padding:0 12px;
+            }
+
+            /* tighten controls */
+            .controls-row{ padding:10px; gap:10px; }
+            .vl-field{ min-width:88px; }
+
+            /* Fretboard sizing for mobile: slightly shorter and guaranteed to fit */
+            #fretboard-diagram{ height:160px; }
+
+            /* Saved voicings: single column, larger elements for readability */
+            .saved-voicings-container{
+                display:flex;
+                flex-direction:column;
+                gap:12px;
+                align-items:center;
+                width:100%;
+            }
+            .saved-voicing-item{
+                width:95%;
+                padding:16px;
+                display:flex;
+                flex-direction:column;
+                align-items:stretch;
+            }
+            .saved-voicing-label{
+                font-size:15px;
+                margin-bottom:10px;
+                text-align:left;
+            }
+            .saved-voicing-item svg{
+                width:100%;
+                height:120px;
+                margin-bottom:10px;
+                display:block;
+            }
+            .saved-remove-btn{
+                width:100%;
+                padding:10px;
+                font-size:15px;
+                border-radius:10px;
+            }
+
+            /* Input numbers and range controls should not overflow:
+               override inline widths with !important for mobile */
+            .input-section input[type="number"]{
+                width:48% !important;
+                box-sizing:border-box;
+                padding:8px 10px !important;
+                font-weight:700;
+            }
+
+            /* make sure current-voicing nav buttons fit */
+            .side-btn{
+                width:100%;
+                height:44px;
+                border-radius:10px;
+            }
+
+            /* avoid any horizontal overflow */
+            body, .container, .output-section, .controls-row { overflow-x: hidden; }
+
+            /* ensure mini svgs scale within cards */
+            .saved-voicing-item svg { max-width: 100%; height: auto; }
+
+            /* Mobile placeholder style: lighter weight and subdued color */
+            .note-square::placeholder {
+                font-weight: 500 !important;
+                color: rgba(11,18,32,0.85) !important;
+                opacity: 0.9 !important;
+            }
+            .note-square.placeholder-active { opacity: 0.6; }
+        }
+
+        /* subtle animated micro-element to sell premium quality */
+        .accent-strip{
+            height:6px;
+            width:100%;
+            margin-top:12px;
+            border-radius:6px;
+            background: linear-gradient(90deg,var(--accent-2), var(--accent-3), var(--accent-1));
+            filter:drop-shadow(0 6px 20px rgba(60,110,255,0.06));
+            animation: glide 8s linear infinite;
+            opacity:0.95;
+        }
+        @keyframes glide{
+            0%{ background-position:0% 50%;}
+            50%{ background-position:100% 50%;}
+            100%{ background-position:0% 50%;}
+        }
+
+        /* voicing info panel */
+        .voicing-info{
+            margin-top:12px;
+            width:100%;
+            border-radius:8px;
+            padding:12px 14px;
+            background: rgba(4,8,12,0.55);
+            border: 2px solid rgba(64,200,145,0.18);
+            color: var(--text-on-dark);
+            box-shadow: 0 8px 24px rgba(2,6,18,0.45);
+            font-size:13px;
+            line-height:1.4;
+            max-width:100%;
+        }
+        .voicing-info .label{ font-weight:800; color:var(--accent-2); margin-right:8px; }
+        .voicing-info .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace; color:#e6f7ef; }
+        .voicing-info .row{ margin-bottom:6px; }
+        .voicing-info .dismiss{ float:right; background:transparent;border:0;color:var(--muted);cursor:pointer;font-weight:700;font-size:14px; }
+        @media (max-width:768px){
+            .voicing-info{ font-size:12px; padding:10px; border-radius:10px; }
+        }
+
+        /* Mobile Hamburger Menu (dark theme) */
+        #mobile-hamburger{
+            display:none; width:40px; height:40px; border-radius:10px; border:0;
+            background:linear-gradient(180deg,#2b2f36,#131416); color:var(--text-on-dark);
+            display:inline-grid; place-items:center; cursor:pointer; font-size:16px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4); transition: all var(--transition);
+        }
+
+        #mobile-menu-backdrop{ display:none; position:fixed; inset:0; background:rgba(2,6,12,0.45); z-index:9997; opacity:0; visibility:hidden; transition:opacity 220ms ease, visibility 220ms ease; }
+        #mobile-menu-backdrop.open{ display:block; opacity:1; visibility:visible; }
+
+        #mobile-menu{
+            position:fixed; top:0; left:0; height:100%; width:280px; max-width:82%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-right:1px solid rgba(255,255,255,0.03); box-shadow: 8px 0 40px rgba(2,6,18,0.6);
+            transform: translateX(-110%); transition: transform 260ms cubic-bezier(.2,.9,.2,1); z-index:9998; padding:64px 14px 20px 14px; border-radius:0 10px 10px 0;
+            color:var(--text-on-dark);
+        }
+        #mobile-menu.open{ transform: translateX(0); }
+        #mobile-menu .menu-close{ position:absolute; top:12px; right:12px; background:transparent; border:0; color:var(--muted); font-size:22px; cursor:pointer; }
+        #mobile-menu .menu-item{ display:flex; gap:12px; align-items:center; padding:12px 10px; border-radius:10px; color:var(--text-on-dark); cursor:pointer; background:transparent; border:0; width:100%; text-align:left; font-weight:800; }
+        #mobile-menu .menu-item i{ width:22px; text-align:center; }
+        #mobile-menu .menu-item:hover{ background: rgba(255,255,255,0.02); }
+
+        /* Hamburger is visible on all sizes; no special mobile-only rule needed */
+    </style>
+</head>
+<body>
+    <div class="container">
+
+         <div class="header-actions">
+             <button id="mobile-hamburger" title="Menu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+         </div>
+
+       <div class="logo-container">
+          <svg width="70" height="70" viewBox="0 0 80 80" aria-hidden="true">
+          <g transform="translate(40, 40) scale(1)">
+            <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#38BDF8" /> 
+            <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#38BDF8" /> 
+            <g transform="rotate(90)">
+                <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#6EE7B7" />
+                <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#6EE7B7" />
+            </g>
+            <g transform="rotate(180)">
+                <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#9B7CFF" />
+                <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#9B7CFF" />
+            </g>
+            <g transform="rotate(270)">
+                <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#ef4444" />
+                <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#ef4444" />
+            </g>
+            <circle cx="0" cy="0" r="8" fill="#1E293B" stroke="#475569" stroke-width="2"/>
+        </g>
+    </svg>
+    <div>
+                <div class="logo-title">VoicyLab</div>
+                <div class="logo-sub"></div>
+            </div>
+        </div>
+
+        <div class="controls-row" role="region" aria-label="Voice leading controls">
+            <div class="vl-panel" aria-hidden="false">
+                <div class="vl-row">
+                    <div class="vl-field">
+                        <label for="scaleRoot">Scale Root</label>
+                        <select id="scaleRoot" aria-label="Scale Root">
+                            <option>C</option><option>C#</option><option>Db</option>
+                            <option>D</option><option>D#</option><option>Eb</option>
+                            <option>E</option><option>F</option><option>F#</option>
+                            <option>Gb</option><option>G</option><option>G#</option>
+                            <option>Ab</option><option>A</option><option>A#</option>
+                            <option>B</option>
+                        </select>
+                    </div>
+
+                    <div class="vl-field">
+                        <label for="scaleType">Scale Type</label>
+                        <select id="scaleType" aria-label="Scale Type">
+                            <option value="major">Major</option>
+                            <option value="minor">Minor</option>
+                            <option value="harmonic minor">Harmonic Minor</option>
+                            <option value="melodic minor">Melodic Minor</option>
+                        </select>
+                    </div>
+
+                    <div class="vl-field">
+                        <label for="chordType">Chord Type</label>
+                        <select id="chordType" aria-label="Chord Type">
+                            <option value="triadic_7th" selected>Triadic/7th Chords (Default)</option>
+                            <option value="3_part_4ths">3-part 4ths</option>
+                            <option value="4_part_4ths">4-part 4ths</option>
+                            <option value="tbn_1">TBN I (Triad/Bass Note)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="vl-row">
+                    <div class="vl-field">
+                        <label for="cycle">Cycle</label>
+                        <select id="cycle" aria-label="Cycle">
+                            <option value="1" selected>2</option>
+                            <option value="2">3</option>
+                            <option value="3">4</option>
+                            <option value="4">5</option>
+                            <option value="5">6</option>
+                            <option value="6">7</option>
+                        </select>
+                    </div>
+
+                <div class="vl-field">
+                    <label for="vlInterval">VL Interval</label>
+                    <select id="vlInterval" aria-label="VL Interval">
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                    </select>
+                </div>
+
+                    <div class="vl-field">
+                        <label>Direction</label>
+                        <div class="vl-direction" role="group" aria-label="Voice leading direction">
+                            <button type="button" class="vl-btn" data-val="-1" id="vlDown" title="Down">▼</button>
+                            <button type="button" class="vl-btn" data-val="0" id="vlNeutral" title="Neutral">•</button>
+                            <button type="button" class="vl-btn" data-val="1" id="vlUp" title="Up">▲</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="current-voicing" aria-label="Current voicing">
+            <button id="predictPrev" class="side-btn prev-btn" aria-label="Prev Chord">◀ Prev</button>
+
+            <input type="text" id="note1" class="note-square" placeholder="G" aria-label="Note 1">
+            <input type="text" id="note2" class="note-square" placeholder="C" aria-label="Note 2">
+            <input type="text" id="note3" class="note-square" placeholder="E" aria-label="Note 3">
+            <input type="text" id="note4" class="note-square" placeholder="A" aria-label="Note 4">
+
+            <button id="predictNext" class="side-btn next-btn" aria-label="Next Chord">Next ▶</button>
+
+            <div class="cv-nav" aria-hidden="true"></div>
+        </div>
+        <!-- Old generate button removed; new Generate button lives in the action row below the fretboard -->
+
+        <div class="input-section" aria-label="Fret and string range">
+            <div style="display:flex; gap:12px; align-items:center;">
+                <div>
+                    <label style="display:block;font-weight:800;color:var(--muted);margin-bottom:6px;">Fret Range</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" id="minFret" value="0" min="0" max="24" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                        <input type="number" id="maxFret" value="24" min="0" max="24" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block;font-weight:800;color:var(--muted);margin-bottom:6px;">String Range</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" id="minString" value="1" min="1" max="6" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                        <input type="number" id="maxString" value="6" min="1" max="6" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container" role="group" aria-label="Actions">
+            <button id="find-voicing-strict"><i class="fa-solid fa-magnifying-glass"></i>&nbsp;&nbsp;Strict Search</button>
+            <button id="find-voicing-flexible"><i class="fa-solid fa-filter"></i>&nbsp;&nbsp;Flexible Search</button>
+        </div>
+        <div class="small-action-row" role="group" aria-label="Quick actions">
+            <button id="play-voicing-button"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Play Chord</button>
+            <button id="store-voicing-button"><i class="fa-solid fa-bookmark"></i>&nbsp;&nbsp;Store Position</button>
+            <button id="generate-voicing-button"><i class="fa-solid fa-wand-magic-sparkles"></i>&nbsp;&nbsp;Generate Voicing</button>
+        </div>
+
+        <div class="output-section" role="region" aria-label="Voicing output">
+            <div class="output-section" role="region" aria-label="Voicing output">
+    
+    <div id="empty-state-placeholder" class="empty-state">
+        <i class="fa-solid fa-music"></i>
+        <h3>Find Your First Voicing</h3>
+        <p>Enter notes above and click 'Next Chord' or 'Strict Search' to begin.</p>
+    </div>
+            <svg id="fretboard-diagram" aria-hidden="false"></svg>
+            <div id="voicing-info" class="voicing-info" aria-live="polite" hidden></div>
+            <div class="output-controls" role="toolbar">
+                <button id="prev-option" title="Previous position" style="height:44px;border-radius:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border:0;color:var(--text-on-dark);cursor:pointer;"><i class="fa-solid fa-chevron-left"></i></button>
+                <div id="option-number">Enter notes to search</div>
+                <button id="next-option" title="Next position" style="height:44px;border-radius:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border:0;color:var(--text-on-dark);cursor:pointer;"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div class="accent-strip" aria-hidden="true"></div>
+
+        <div class="saved-voicings-section" aria-label="Saved voicings">
+            <h3>Saved Voicings</h3>
+            <div id="saved-voicings-container" class="saved-voicings-container" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <div id="mobile-menu-backdrop"></div>
+    <nav id="mobile-menu" aria-hidden="true" aria-label="Mobile menu">
+        <button class="menu-close" aria-label="Close menu">&times;</button>
+        <button class="menu-item" id="mobile-help-item"><i class="fa-solid fa-question"></i>&nbsp;&nbsp;Help</button>
+        <button class="menu-item" id="mobile-contact-item"><i class="fa-solid fa-envelope"></i>&nbsp;&nbsp;Contact</button>
+    </nav>
+
+<!-- Help modal -->
+<div id="help-modal-overlay" aria-hidden="true">
+    <div id="help-modal-content" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+        <button class="help-close" aria-label="Close help">&times;</button>
+        <h2 id="help-modal-title">Welcome to VoicyLab!</h2>
+        <p>VoicyLab brings Mick Goodrick’s voicing cycles directly to your fretboard.</p>
+
+        <h3>🎸 Find voicings for any four notes</h3>
+        <ul>
+            <li>Enter up to 4 notes (low to high string).</li>
+            <li><strong>Strict Search</strong>: exact note order from low to high string.</li>
+            <li><strong>Flexible Search</strong>: all possible orders – great for playable fingerings.</li>
+            <li>Use the arrows or <strong>Next</strong> to browse all positions.</li>
+        </ul>
+
+        <h3>✨ Explore Goodrick cycles</h3>
+        <ul>
+            <li>Set Scale, Cycle (2–7), and Direction (voice-leading preference).</li>
+            <li>Enter the starting voicing.</li>
+            <li>Click <strong>Next</strong> – the app predicts the next voicing in the cycle with smooth voice-leading.</li>
+        </ul>
+
+        <p>Filter with Fret/String Range, store favorites, and play sounds.</p>
+        <p>Watch the 2-minute demo: <a href="https://www.youtube.com/watch?v=601zdE9CJ_g" target="_blank">https://youtu.be/601zdE9CJ_g</a></p>
+        <p>Enjoy the voicings!</p>
+    </div>
+</div>
+    <!-- Contact modal -->
+    <div id="contact-modal-overlay" aria-hidden="true">
+        <div id="contact-modal-content" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+            <button class="contact-close" aria-label="Close contact">&times;</button>
+            <h2 id="contact-modal-title">Contact</h2>
+            <p>Got questions? Drop me a line:<br>
+            Email: <a href="mailto:info@voicylab.app" class="contact-link">info@voicylab.app</a><br>
+            (usually reply within a few hours)</p>
+        </div>
+    </div>
+
+    <script>
+    // Combined Voicing Finder + Voice Leading Predictor
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // Guitar Sampler
+        let guitarSampler;
+        let soundsLoaded = false;
+        const noteNamesFromPitch = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        function setupGuitarSampler(callback) {
+            try {
+                // Load the midi-js-soundfonts JS file which contains base64 encoded samples
+                const script = document.createElement('script');
+                script.src = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_guitar_steel-mp3.js';
+                script.onload = function() {
+                    try {
+                        // The script should populate MIDI.Soundfont.acoustic_guitar_steel with base64 data URLs
+                        if (typeof MIDI !== 'undefined' && MIDI.Soundfont && MIDI.Soundfont.acoustic_guitar_steel) {
+                            const sampleUrls = {};
+                            
+                            // Extract the samples we need (A2-G4 range)
+                            const notes = ['A2', 'A3', 'A4', 'B2', 'B3', 'C3', 'C4', 'C5', 'D2', 'D3', 'D4', 'E2', 'E3', 'E4', 'F2', 'F3', 'F4', 'G2', 'G3', 'G4'];
+                            
+                            notes.forEach(note => {
+                                if (MIDI.Soundfont.acoustic_guitar_steel[note]) {
+                                    sampleUrls[note] = MIDI.Soundfont.acoustic_guitar_steel[note];
+                                }
+                            });
+                            
+                            if (Object.keys(sampleUrls).length > 0) {
+                                guitarSampler = new Tone.Sampler({
+                                    urls: sampleUrls,
+                                    release: 1,
+                                    onload: () => {
+                                        soundsLoaded = true;
+                                        console.log('Guitar samples loaded successfully from midi-js-soundfonts');
+                                        if (callback) callback();
+                                    }
+                                }).toDestination();
+                            } else {
+                                throw new Error('No guitar samples found in loaded soundfont');
+                            }
+                        } else {
+                            throw new Error('MIDI soundfont not loaded properly');
+                        }
+                    } catch (error) {
+                        console.warn('Failed to load guitar samples from midi-js-soundfonts, falling back to oscillators:', error);
+                        soundsLoaded = false;
+                        guitarSampler = null;
+                        if (callback) callback();
+                    }
+                };
+                
+                script.onerror = function() {
+                    console.warn('Failed to load midi-js-soundfonts script, falling back to oscillators');
+                    soundsLoaded = false;
+                    guitarSampler = null;
+                    if (callback) callback();
+                };
+                
+                document.head.appendChild(script);
+            } catch (error) {
+                console.warn('Error setting up guitar sampler, falling back to oscillators:', error);
+                soundsLoaded = false;
+                guitarSampler = null;
+                if (callback) callback();
+            }
+        }
+
+        function resolveAbsolutePitches(targetNoteNames, previousPitches) {
+            if (!targetNoteNames || targetNoteNames.length === 0) {
+                return [];
+            }
+
+            let finalPitches;
+
+            if (!previousPitches || previousPitches.length === 0) {
+                const firstNotePc = vl_pc(targetNoteNames[0]);
+                let startPitch = 3 * 12 + firstNotePc; 
+                
+                const resolvedPitches = [startPitch];
+                for (let i = 1; i < targetNoteNames.length; i++) {
+                    const pc = vl_pc(targetNoteNames[i]);
+                    const prevPitch = resolvedPitches[i-1];
+                    let nextPitch = prevPitch - (prevPitch % 12) + pc;
+                    if (nextPitch < prevPitch) {
+                        nextPitch += 12;
+                    }
+                    resolvedPitches.push(nextPitch);
+                }
+                finalPitches = resolvedPitches;
+            } else {
+                const avgPrevPitch = previousPitches.reduce((a, b) => a + b, 0) / previousPitches.length;
+                let bestCandidate = [];
+                let minTotalDistance = Infinity;
+                const startOctaveGuess = Math.round(avgPrevPitch / 12);
+
+                for (let o = -1; o <= 1; o++) {
+                    const candidateOctave = startOctaveGuess + o;
+                    const candidatePitches = [];
+                    const firstNotePc = vl_pc(targetNoteNames[0]);
+                    candidatePitches.push(candidateOctave * 12 + firstNotePc);
+
+                    for (let i = 1; i < targetNoteNames.length; i++) {
+                        const pc = vl_pc(targetNoteNames[i]);
+                        const prevPitch = candidatePitches[i-1];
+                        let nextPitch = prevPitch - (prevPitch % 12) + pc;
+                        if (nextPitch < prevPitch) {
+                            nextPitch += 12;
+                        }
+                        candidatePitches.push(nextPitch);
+                    }
+
+                    const avgCandidatePitch = candidatePitches.reduce((a, b) => a + b, 0) / candidatePitches.length;
+                    const distance = Math.abs(avgCandidatePitch - avgPrevPitch);
+                    
+                    if (distance < minTotalDistance) {
+                        minTotalDistance = distance;
+                        bestCandidate = candidatePitches;
+                    }
+                }
+                finalPitches = bestCandidate;
+            }
+
+            const MIN_PITCH = 2 * 12; // C2
+            const MAX_PITCH = 5 * 12 + 11; // B5
+
+            while (true) {
+                if (finalPitches.length === 0) break;
+                const maxNote = Math.max(...finalPitches);
+                const minNote = Math.min(...finalPitches);
+
+                if (maxNote > MAX_PITCH) {
+                    finalPitches = finalPitches.map(p => p - 12);
+                } else if (minNote < MIN_PITCH) {
+                    finalPitches = finalPitches.map(p => p + 12);
+                } else {
+                    break;
+                }
+            }
+            
+            return finalPitches;
+        }
+
+        function playGuitarChord(absolutePitches) {
+            if (!soundsLoaded || !absolutePitches || absolutePitches.length === 0) {
+                // Fall back to oscillator-based playback
+                if (absolutePitches && absolutePitches.length > 0) {
+                    absolutePitches.forEach(pitch => {
+                        const pc = pitch % 12;
+                        const octave = Math.floor(pitch / 12) - 1; // Adjust octave for string calculation
+                        // Find a suitable string/fret combination for this pitch
+                        const noteName = noteNamesFromPitch[pc];
+                        const positions = noteToFretStringMap[noteName] || [];
+                        if (positions.length > 0) {
+                            // Use the first available position
+                            const pos = positions[0];
+                            playNote(pos.string, pos.fret);
+                        }
+                    });
+                }
+                return;
+            }
+            
+            const notesToPlay = absolutePitches.map(pitch => {
+                const octave = Math.floor(pitch / 12);
+                const noteName = noteNamesFromPitch[pitch % 12];
+                return `${noteName}${octave}`;
+            });
+            
+            guitarSampler.triggerAttackRelease(notesToPlay, "1n", Tone.now());
+        }
+
+        // UI references
+        const noteInputs = ['note1','note2','note3','note4'].map(id => document.getElementById(id));
+         (function(){
+    const originalPlaceholders = noteInputs.map(el => el ? (el.getAttribute('placeholder')||'') : '');
+    function updatePlaceholdersForMobile(){
+        const isMobile = window.innerWidth <= 768;
+        noteInputs.forEach((el,i)=>{
+            if(!el) return;
+            if(isMobile){
+                const ph = (i < 3) ? `Note ${i+1}` : `Note ${i+1} (opt)`;
+                el.setAttribute('placeholder', ph);
+                el.style.opacity = el.value ? '' : '0.95'; // reduced opacity when empty
+            } else {
+                el.setAttribute('placeholder', originalPlaceholders[i] || '');
+                el.style.opacity = '';
+            }
+        });
+    }
+    window.addEventListener('resize', updatePlaceholdersForMobile);
+    updatePlaceholdersForMobile();
+    noteInputs.forEach(el=>{
+        if(!el) return;
+        el.addEventListener('input', ()=>{ if(window.innerWidth <= 768) el.style.opacity = el.value ? '' : '0.95'; });
+    });
+})();
+
+        // --- Global App State ---
+        const appState = { 
+            predictHistory: [], 
+            maxHistory: 100, 
+            vlDirState: -1, 
+            currentAbsolutePitches: [],
+            predictionCount: 0,
+            initialVoicingNotes: []
+        };
+
+        const minFretInput = document.getElementById('minFret');
+        const maxFretInput = document.getElementById('maxFret');
+        const minStringInput = document.getElementById('minString');
+        const maxStringInput = document.getElementById('maxString');
+
+        const findVoicingStrictButton = document.getElementById('find-voicing-strict');
+        const findVoicingFlexibleButton = document.getElementById('find-voicing-flexible');
+        const playVoicingButton = document.getElementById('play-voicing-button');
+        const storeVoicingButton = document.getElementById('store-voicing-button');
+
+        const predictNextBtn = document.getElementById('predictNext');
+        const predictPrevBtn = document.getElementById('predictPrev');
+        const generateVoicingButton = document.getElementById('generate-voicing-button');
+
+        const optionNumberElement = document.getElementById('option-number');
+        const fretboardSVG = document.getElementById('fretboard-diagram');
+        const savedVoicingsContainer = document.getElementById('saved-voicings-container');
+        const prevButton = document.getElementById('prev-option');
+        const nextButton = document.getElementById('next-option');
+
+        const voicingInfoBox = document.getElementById('voicing-info');
+
+        const vlIntervalInput = document.getElementById('vlInterval');
+        const vlDirButtons = [document.getElementById('vlDown'), document.getElementById('vlNeutral'), document.getElementById('vlUp')];
+    const scaleRootEl = document.getElementById('scaleRoot');
+    const scaleTypeEl = document.getElementById('scaleType');
+    const cycleEl = document.getElementById('cycle');
+    // new chord type selector (fallback to older id 'chordType')
+    const chordTypeEl = document.getElementById('chordTypeSelect') || document.getElementById('chordType');
+    // Voicing type selector (we'll add the element to the DOM below if present)
+    const voicingTypeEl = document.getElementById('voicingTypeSelect');
+
+        let vlDirState = -1;
+        function setActiveDirection(val){
+            vlDirState = val;
+            vlDirButtons.forEach(b=>{
+                if(!b) return;
+                const v = parseInt(b.getAttribute('data-val'),10);
+                b.classList.toggle('active', v === val);
+                b.setAttribute('aria-pressed', String(v===val));
+            });
+        }
+        vlDirButtons.forEach(b=>{ if(b) b.addEventListener('click', ()=> setActiveDirection(parseInt(b.getAttribute('data-val'),10))); });
+        setActiveDirection(-1);
+
+        // --- Voicing Finder data & functions ---
+    let allVoicings = [];
+        let currentVoicingIndex = 0;
+    // History stack for Next/Previous (undo) behavior: stores arrays of input note values
+    const predictHistory = [];
+    const MAX_HISTORY = 100;
+        const NUM_FRETS = 24;
+        const NUM_STRINGS = 6;
+        const MAX_FRET_SPAN = 5;
+        const MOBILE_VISIBLE_FRETS = 7;
+        const BASE_NOTE_FONT_SIZE_VALUE = 18.0;
+        const MIN_FRET_WINDOW = 5; // minimum visible frets in zoom window
+
+        // New constant: visually pleasing fret width in px
+        const OPTIMAL_FRET_WIDTH = 48; // chosen pleasing pixel width per fret
+        const SVG_HORIZONTAL_PADDING = 50; // left+right combined padding inside viewBox
+        const DEFAULT_SVG_HEIGHT = 150; // default viewBox height used for drawing calculations
+
+        const noteToFretStringMap = {
+    'E': [
+        // String 6 (Low E)
+        { fret: 0, string: 6, note: 'E' }, { fret: 12, string: 6, note: 'E' }, { fret: 24, string: 6, note: 'E' },
+        // String 5
+        { fret: 7, string: 5, note: 'E' }, { fret: 19, string: 5, note: 'E' },
+        // String 4
+        { fret: 2, string: 4, note: 'E' }, { fret: 14, string: 4, note: 'E' },
+        // String 3
+        { fret: 9, string: 3, note: 'E' }, { fret: 21, string: 3, note: 'E' },
+        // String 2
+        { fret: 5, string: 2, note: 'E' }, { fret: 17, string: 2, note: 'E' },
+        // String 1 (High E)
+        { fret: 0, string: 1, note: 'E' }, { fret: 12, string: 1, note: 'E' }, { fret: 24, string: 1, note: 'E' }
+    ],
+    'F': [
+        // String 6
+        { fret: 1, string: 6, note: 'F' }, { fret: 13, string: 6, note: 'F' },
+        // String 5
+        { fret: 8, string: 5, note: 'F' }, { fret: 20, string: 5, note: 'F' },
+        // String 4
+        { fret: 3, string: 4, note: 'F' }, { fret: 15, string: 4, note: 'F' },
+        // String 3
+        { fret: 10, string: 3, note: 'F' }, { fret: 22, string: 3, note: 'F' },
+        // String 2
+        { fret: 6, string: 2, note: 'F' }, { fret: 18, string: 2, note: 'F' },
+        // String 1
+        { fret: 1, string: 1, note: 'F' }, { fret: 13, string: 1, note: 'F' }
+    ],
+    'F#': [
+        // String 6
+        { fret: 2, string: 6, note: 'F#' }, { fret: 14, string: 6, note: 'F#' },
+        // String 5
+        { fret: 9, string: 5, note: 'F#' }, { fret: 21, string: 5, note: 'F#' },
+        // String 4
+        { fret: 4, string: 4, note: 'F#' }, { fret: 16, string: 4, note: 'F#' },
+        // String 3
+        { fret: 11, string: 3, note: 'F#' }, { fret: 23, string: 3, note: 'F#' },
+        // String 2
+        { fret: 7, string: 2, note: 'F#' }, { fret: 19, string: 2, note: 'F#' },
+        // String 1
+        { fret: 2, string: 1, note: 'F#' }, { fret: 14, string: 1, note: 'F#' }
+    ],
+    'G': [
+        // String 6
+        { fret: 3, string: 6, note: 'G' }, { fret: 15, string: 6, note: 'G' },
+        // String 5
+        { fret: 10, string: 5, note: 'G' }, { fret: 22, string: 5, note: 'G' },
+        // String 4
+        { fret: 5, string: 4, note: 'G' }, { fret: 17, string: 4, note: 'G' },
+        // String 3
+        { fret: 0, string: 3, note: 'G' }, { fret: 12, string: 3, note: 'G' }, { fret: 24, string: 3, note: 'G' },
+        // String 2
+        { fret: 8, string: 2, note: 'G' }, { fret: 20, string: 2, note: 'G' },
+        // String 1
+        { fret: 3, string: 1, note: 'G' }, { fret: 15, string: 1, note: 'G' }
+    ],
+    'G#': [
+        // String 6
+        { fret: 4, string: 6, note: 'G#' }, { fret: 16, string: 6, note: 'G#' },
+        // String 5
+        { fret: 11, string: 5, note: 'G#' }, { fret: 23, string: 5, note: 'G#' },
+        // String 4
+        { fret: 6, string: 4, note: 'G#' }, { fret: 18, string: 4, note: 'G#' },
+        // String 3
+        { fret: 1, string: 3, note: 'G#' }, { fret: 13, string: 3, note: 'G#' },
+        // String 2
+        { fret: 9, string: 2, note: 'G#' }, { fret: 21, string: 2, note: 'G#' },
+        // String 1
+        { fret: 4, string: 1, note: 'G#' }, { fret: 16, string: 1, note: 'G#' }
+    ],
+    'A': [
+        // String 6
+        { fret: 5, string: 6, note: 'A' }, { fret: 17, string: 6, note: 'A' },
+        // String 5
+        { fret: 0, string: 5, note: 'A' }, { fret: 12, string: 5, note: 'A' }, { fret: 24, string: 5, note: 'A' },
+        // String 4
+        { fret: 7, string: 4, note: 'A' }, { fret: 19, string: 4, note: 'A' },
+        // String 3
+        { fret: 2, string: 3, note: 'A' }, { fret: 14, string: 3, note: 'A' },
+        // String 2
+        { fret: 10, string: 2, note: 'A' }, { fret: 22, string: 2, note: 'A' },
+        // String 1
+        { fret: 5, string: 1, note: 'A' }, { fret: 17, string: 1, note: 'A' }
+    ],
+    'A#': [
+        // String 6
+        { fret: 6, string: 6, note: 'A#' }, { fret: 18, string: 6, note: 'A#' },
+        // String 5
+        { fret: 1, string: 5, note: 'A#' }, { fret: 13, string: 5, note: 'A#' },
+        // String 4
+        { fret: 8, string: 4, note: 'A#' }, { fret: 20, string: 4, note: 'A#' },
+        // String 3
+        { fret: 3, string: 3, note: 'A#' }, { fret: 15, string: 3, note: 'A#' },
+        // String 2
+        { fret: 11, string: 2, note: 'A#' }, { fret: 23, string: 2, note: 'A#' },
+        // String 1
+        { fret: 6, string: 1, note: 'A#' }, { fret: 18, string: 1, note: 'A#' }
+    ],
+    'B': [
+        // String 6
+        { fret: 7, string: 6, note: 'B' }, { fret: 19, string: 6, note: 'B' },
+        // String 5
+        { fret: 2, string: 5, note: 'B' }, { fret: 14, string: 5, note: 'B' },
+        // String 4
+        { fret: 9, string: 4, note: 'B' }, { fret: 21, string: 4, note: 'B' },
+        // String 3
+        { fret: 4, string: 3, note: 'B' }, { fret: 16, string: 3, note: 'B' },
+        // String 2
+        { fret: 0, string: 2, note: 'B' }, { fret: 12, string: 2, note: 'B' }, { fret: 24, string: 2, note: 'B' },
+        // String 1
+        { fret: 7, string: 1, note: 'B' }, { fret: 19, string: 1, note: 'B' }
+    ],
+    'C': [
+        // String 6
+        { fret: 8, string: 6, note: 'C' }, { fret: 20, string: 6, note: 'C' },
+        // String 5
+        { fret: 3, string: 5, note: 'C' }, { fret: 15, string: 5, note: 'C' },
+        // String 4
+        { fret: 10, string: 4, note: 'C' }, { fret: 22, string: 4, note: 'C' },
+        // String 3
+        { fret: 5, string: 3, note: 'C' }, { fret: 17, string: 3, note: 'C' },
+        // String 2
+        { fret: 1, string: 2, note: 'C' }, { fret: 13, string: 2, note: 'C' },
+        // String 1
+        { fret: 8, string: 1, note: 'C' }, { fret: 20, string: 1, note: 'C' }
+    ],
+    'C#': [
+        // String 6
+        { fret: 9, string: 6, note: 'C#' }, { fret: 21, string: 6, note: 'C#' },
+        // String 5
+        { fret: 4, string: 5, note: 'C#' }, { fret: 16, string: 5, note: 'C#' },
+        // String 4
+        { fret: 11, string: 4, note: 'C#' }, { fret: 23, string: 4, note: 'C#' },
+        // String 3
+        { fret: 6, string: 3, note: 'C#' }, { fret: 18, string: 3, note: 'C#' },
+        // String 2
+        { fret: 2, string: 2, note: 'C#' }, { fret: 14, string: 2, note: 'C#' },
+        // String 1
+        { fret: 9, string: 1, note: 'C#' }, { fret: 21, string: 1, note: 'C#' }
+    ],
+    'D': [
+        // String 6
+        { fret: 10, string: 6, note: 'D' }, { fret: 22, string: 6, note: 'D' },
+        // String 5
+        { fret: 5, string: 5, note: 'D' }, { fret: 17, string: 5, note: 'D' },
+        // String 4
+        { fret: 0, string: 4, note: 'D' }, { fret: 12, string: 4, note: 'D' }, { fret: 24, string: 4, note: 'D' },
+        // String 3
+        { fret: 7, string: 3, note: 'D' }, { fret: 19, string: 3, note: 'D' },
+        // String 2
+        { fret: 3, string: 2, note: 'D' }, { fret: 15, string: 2, note: 'D' },
+        // String 1
+        { fret: 10, string: 1, note: 'D' }, { fret: 22, string: 1, note: 'D' }
+    ],
+    'D#': [
+        // String 6
+        { fret: 11, string: 6, note: 'D#' }, { fret: 23, string: 6, note: 'D#' },
+        // String 5
+        { fret: 6, string: 5, note: 'D#' }, { fret: 18, string: 5, note: 'D#' },
+        // String 4
+        { fret: 1, string: 4, note: 'D#' }, { fret: 13, string: 4, note: 'D#' },
+        // String 3
+        { fret: 8, string: 3, note: 'D#' }, { fret: 20, string: 3, note: 'D#' },
+        // String 2
+        { fret: 4, string: 2, note: 'D#' }, { fret: 16, string: 2, note: 'D#' },
+        // String 1
+        { fret: 11, string: 1, note: 'D#' }, { fret: 23, string: 1, note: 'D#' }
+    ]
+};
+
+        const flatToSharpMap = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' };
+        function normalizeForSearch(note) { return (flatToSharpMap[note?.toUpperCase()] || (note||'').toUpperCase()).replace(/\s+/g,''); }
+
+        function getPermutations(arr) {
+            const result = [];
+            if (arr.length === 0) return [[]];
+            if (arr.length === 1) return [arr];
+            for (let i = 0; i < arr.length; i++) {
+                const first = arr[i];
+                const rest = arr.slice(0,i).concat(arr.slice(i+1));
+                const perms = getPermutations(rest);
+                for (const p of perms) result.push([first].concat(p));
+            }
+            return result;
+        }
+
+ function sortVoicings(voicings) {
+            // Helper to calculate voicing stats
+            function getStats(voicing) {
+                const frets = voicing.map(v => v.fret);
+                const strings = voicing.map(v => v.string).sort((a, b) => b - a); 
+                
+                const minF = Math.min(...frets);
+                const maxF = Math.max(...frets);
+                
+                // תיקון: חישוב Span כוללני (Inclusive). 
+                // דוגמה: שריגים 1-5 יחשבו כ-Span 5 (במקום 4).
+                // זה דוחף אקורדים "רחבים" יותר להיררכיה נמוכה יותר.
+                const span = maxF - minF + 1;
+
+                let skips = 0;
+                for (let i = 0; i < strings.length - 1; i++) {
+                    const diff = Math.abs(strings[i] - strings[i+1]);
+                    if (diff > 1) {
+                        skips += (diff - 1);
+                    }
+                }
+                return { span, skips, minFret: minF };
+            }
+
+            // Assign Tier based on user hierarchy (עודכן לחישוב Span החדש)
+            function getTier(span, skips) {
+                // 1. No skips, Span <= 4 (למשל שריגים 2-5, שזה טווח של 4)
+                if (skips === 0 && span <= 4) return 1;
+                
+                // 2. 1 skip, Span <= 3 (קומפקטי מאוד עם דילוג)
+                if (skips === 1 && span <= 3) return 2;
+                
+                // 3. No skips, Span == 5 (למשל שריגים 1-5. זה המקרה של no7.png)
+                if (skips === 0 && span === 5) return 3;
+                
+                // 4. 1 skip, Span == 4
+                if (skips === 1 && span === 4) return 4;
+                
+                // 5. 2 skips, Span <= 4
+                if (skips === 2 && span <= 4) return 5;
+                
+                // 6. 1 skip, Span == 5
+                if (skips === 1 && span === 5) return 6;
+                
+                // 7. 2 skips, Span == 5
+                if (skips === 2 && span === 5) return 7;
+                
+                // 8. No skips, Span == 6 (מתיחות גדולות)
+                if (skips === 0 && span === 6) return 8;
+                
+                // 9. Everything else
+                return 9;
+            }
+
+            return voicings.sort((a, b) => {
+                const statsA = getStats(a);
+                const statsB = getStats(b);
+
+                const tierA = getTier(statsA.span, statsA.skips);
+                const tierB = getTier(statsB.span, statsB.skips);
+
+                // Primary Sort: Tier
+                if (tierA !== tierB) {
+                    return tierA - tierB;
+                }
+
+                // Secondary Sort: Prefer shorter span within the same tier
+                if (statsA.span !== statsB.span) {
+                    return statsA.span - statsB.span;
+                }
+
+                // Tertiary Sort: Prefer lower fret position
+                return statsA.minFret - statsB.minFret;
+            });
+        }
+
+        function findVoicingsRecursiveStrict(notes, currentVoicing, usedStrings, allVoicings, noteIndex, minString, maxString) {
+            if (noteIndex === notes.length) { allVoicings.push([...currentVoicing]); return; }
+            const originalNote = notes[noteIndex];
+            const noteToFind = normalizeForSearch(originalNote);
+            const possiblePositions = noteToFretStringMap[noteToFind];
+            if (!possiblePositions) return;
+            for (const pos of possiblePositions) {
+                if (pos.string >= minString && pos.string <= maxString) {
+                    if (!usedStrings.has(pos.string)) {
+                        if (noteIndex === 0 || pos.string < currentVoicing[currentVoicing.length - 1].string) {
+                            usedStrings.add(pos.string);
+                            const newVoicing = [...currentVoicing, { ...pos, originalNote: originalNote }];
+                            findVoicingsRecursiveStrict(notes, newVoicing, usedStrings, allVoicings, noteIndex + 1, minString, maxString);
+                            usedStrings.delete(pos.string);
+                        }
+                    }
+                }
+            }
+        }
+
+        function getUniqueVoicings(foundVoicings, minFret, maxFret) {
+            const unique = []; const keys = new Set();
+            foundVoicings.forEach(voicing=>{
+                const frets = voicing.map(v=>v.fret);
+                if (frets.length===0) return;
+                const minV = Math.min(...frets), maxV = Math.max(...frets);
+                const span = maxV - minV;
+                if (minV >= minFret && maxV <= maxFret && span <= MAX_FRET_SPAN) {
+                    const sorted = [...voicing].sort((a,b)=>a.string-b.string);
+                    const key = JSON.stringify(sorted.map(v=>({fret:v.fret,string:v.string})));
+                    if(!keys.has(key)){ keys.add(key); unique.push(voicing); }
+                }
+            });
+            return unique;
+        }
+
+        function findAndFilterVoicingsStrict() {
+            const inputNotes = noteInputs.map(i => i.value).filter(n => n && n.trim() !== '');
+            if (inputNotes.length === 0) return [];
+            const minString = parseInt(minStringInput.value,10) || 1;
+            const maxString = parseInt(maxStringInput.value,10) || 6;
+            const minFret = parseInt(minFretInput.value,10) || 0;
+            const maxFret = parseInt(maxFretInput.value,10) || 24;
+            const found = []; findVoicingsRecursiveStrict(inputNotes, [], new Set(), found, 0, minString, maxString);
+            const unique = getUniqueVoicings(found, minFret, maxFret);
+            return sortVoicings(unique);
+        }
+
+        function findAndFilterVoicingsFlexible() {
+            const inputNotes = noteInputs.map(i => i.value).filter(n => n && n.trim() !== '');
+            if (inputNotes.length === 0) return [];
+            const minString = parseInt(minStringInput.value,10) || 1;
+            const maxString = parseInt(maxStringInput.value,10) || 6;
+            const minFret = parseInt(minFretInput.value,10) || 0;
+            const maxFret = parseInt(maxFretInput.value,10) || 24;
+            const all = [];
+            const perms = getPermutations(inputNotes);
+            perms.forEach(p=>{
+                const found = []; findVoicingsRecursiveStrict(p, [], new Set(), found, 0, minString, maxString);
+                all.push(...found);
+            });
+            const unique = getUniqueVoicings(all, minFret, maxFret);
+            return sortVoicings(unique);
+        }
+
+        // SVG drawing utilities - revised to use fixed per-fret pixel width and dynamic svg width
+        function drawFretboard(targetSVG, startFret = 0, numFrets = NUM_FRETS, noteRadius = 11.11, noteFontSize = 12.6, fretFontSize = BASE_NOTE_FONT_SIZE_VALUE * 0.9, yOffsetMultiplier = 1.5) {
+            targetSVG.innerHTML = '';
+
+            if (!numFrets || numFrets <= 0) numFrets = NUM_FRETS;
+            // compute dimensions based on available svg client size and desired optimal width
+            const isMainLocal = (targetSVG === fretboardSVG);
+
+            const VIEWBOX_PADDING = SVG_HORIZONTAL_PADDING; // total left+right padding inside viewBox
+            // If we have a client width (mini svgs or responsive), use it to pick a suitable fret width
+            const clientW = targetSVG.clientWidth || (isMainLocal ? Math.min(window.innerWidth - 120, OPTIMAL_FRET_WIDTH * numFrets) : 300);
+            // desired per-fret width based on available width, clamped to a readable range
+            let fretWidthCandidate = Math.max(16, (clientW - VIEWBOX_PADDING) / Math.max(1, numFrets));
+            let fretWidthPx = isMainLocal ? OPTIMAL_FRET_WIDTH : Math.min(OPTIMAL_FRET_WIDTH, Math.max(16, fretWidthCandidate));
+            // For main fretboard we want the optimal width but if the viewport is narrow reduce it
+            if (isMainLocal && clientW < OPTIMAL_FRET_WIDTH * numFrets) {
+                fretWidthPx = Math.max(20, (clientW - VIEWBOX_PADDING) / Math.max(1, numFrets));
+            }
+
+            const FRETBOARD_WIDTH = fretWidthPx * numFrets;
+            const viewBoxWidth = FRETBOARD_WIDTH + VIEWBOX_PADDING;
+            const viewBoxHeight = targetSVG.clientHeight && !isNaN(targetSVG.clientHeight) ? targetSVG.clientHeight : DEFAULT_SVG_HEIGHT;
+
+            // set viewBox and explicit svg size
+            targetSVG.setAttribute('viewBox', `0 0 ${viewBoxWidth} ${viewBoxHeight}`);
+            if (isMainLocal) {
+                // for main fretboard, allow wide layout but keep it bounded
+                targetSVG.style.width = `${Math.min(viewBoxWidth, Math.max(360, Math.min(window.innerWidth - 80, viewBoxWidth)))}px`;
+                targetSVG.style.height = `${viewBoxHeight}px`;
+            } else {
+                // for mini svgs, make them fluid to card width and set explicit height for consistent rendering
+                targetSVG.style.width = '100%';
+                targetSVG.style.height = `${viewBoxHeight}px`;
+            }
+
+            const FRETBOARD_START_X = VIEWBOX_PADDING / 2;
+            const FRETBOARD_START_Y = 20;
+            const FRETBOARD_HEIGHT = Math.max(60, viewBoxHeight - 40);
+            const STRING_HEIGHT = FRETBOARD_HEIGHT / (NUM_STRINGS - 1);
+            const FRET_WIDTH = fretWidthPx;
+
+            // strings
+            for (let i = 0; i < NUM_STRINGS; i++) {
+                const y = FRETBOARD_START_Y + i * STRING_HEIGHT;
+                targetSVG.innerHTML += `<line x1="${FRETBOARD_START_X}" y1="${y}" x2="${FRETBOARD_START_X + FRETBOARD_WIDTH}" y2="${y}" stroke="rgba(255,255,255,0.70)" stroke-width="1.2" class="string-line" />`;
+                if (targetSVG === fretboardSVG) targetSVG.innerHTML += `<text x="${FRETBOARD_START_X - 10}" y="${y + noteFontSize * 0.3}" font-size="${noteFontSize}" text-anchor="end" fill="rgba(255,255,255,0.75)">${i + 1}</text>`;
+            }
+
+            // frets lines and numbers
+            for (let i = 0; i <= numFrets; i++) {
+                const x = FRETBOARD_START_X + i * FRET_WIDTH;
+                targetSVG.innerHTML += `<line x1="${x}" y1="${FRETBOARD_START_Y}" x2="${x}" y2="${FRETBOARD_START_Y + (NUM_STRINGS - 1) * STRING_HEIGHT}" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" class="fret-line" />`;
+                const fretNumber = startFret + i;
+                if (fretNumber >= 0 && i > 0) {
+                    const labelY = FRETBOARD_START_Y + (NUM_STRINGS - 1) * STRING_HEIGHT + noteRadius * yOffsetMultiplier;
+                    targetSVG.innerHTML += `<text x="${x - FRET_WIDTH / 2}" y="${labelY}" font-size="${fretFontSize}" text-anchor="middle" fill="rgba(255,255,255,0.75)">${fretNumber}</text>`;
+                }
+            }
+        }
+
+      function drawVoicing(targetSVG, voicing, providedStartFret = null, providedNumFrets = null) {
+    const isMain = targetSVG === fretboardSVG;
+    const BASE_NOTE_RADIUS = 11.11;
+    const BASE_NOTE_FONT_SIZE = BASE_NOTE_FONT_SIZE_VALUE;
+
+    let startFret = (providedStartFret === null || providedStartFret === undefined) ? null : providedStartFret;
+    let numFretsToDisplay = (providedNumFrets === null || providedNumFrets === undefined) ? null : providedNumFrets;
+    
+    // Use Number() to ensure fret values are numeric, and handle open strings correctly
+    const fretValues = (voicing && voicing.length > 0) ? voicing.map(n => Number(n.fret || 0)) : [];
+
+    if (startFret === null) {
+        if (fretValues.length === 0) {
+            startFret = 0;
+            numFretsToDisplay = NUM_FRETS;
+        } else {
+            let minF = Math.min(...fretValues);
+            let maxF = Math.max(...fretValues);
+            // If the only fretted note is 0, start the window from 0
+            if (maxF === 0) minF = 0;
+
+            let s = (minF > 0) ? Math.max(0, minF - 1) : 0;
+            let e = Math.min(NUM_FRETS, maxF + 1);
+            if (e - s < MIN_FRET_WINDOW) {
+                e = Math.min(NUM_FRETS, s + MIN_FRET_WINDOW);
+                if (e - s < MIN_FRET_WINDOW) {
+                    s = Math.max(0, e - MIN_FRET_WINDOW);
+                }
+            }
+            startFret = s;
+            numFretsToDisplay = Math.max(1, e - s);
+        }
+    } else {
+        if (!numFretsToDisplay) numFreetsToDisplay = isMain ? NUM_FRETS : MOBILE_VISIBLE_FRETS;
+    }
+
+    if (!isMain || (isMain && window.innerWidth <= 768)) {
+        if (numFretsToDisplay < MOBILE_VISIBLE_FRETS) numFretsToDisplay = MOBILE_VISIBLE_FRETS;
+        if (fretValues.length > 0) {
+            const minF = Math.min(...fretValues);
+            if (startFret === 0 && minF > 1) startFret = Math.max(0, minF - 1);
+        }
+        if (startFret + numFretsToDisplay > NUM_FRETS) startFret = Math.max(0, NUM_FRETS - numFretsToDisplay);
+    } else {
+        if (startFret + numFretsToDisplay > NUM_FRETS) numFretsToDisplay = Math.max(1, NUM_FRETS - startFret);
+    }
+    
+    const noteRadius = BASE_NOTE_RADIUS;
+    const noteFontSize = isMain ? BASE_NOTE_FONT_SIZE * 0.8 : BASE_NOTE_FONT_SIZE * 0.65;
+    const fretFontSize = isMain ? BASE_NOTE_FONT_SIZE * 0.85 : BASE_NOTE_FONT_SIZE * 0.6;
+    drawFretboard(targetSVG, startFret, numFretsToDisplay, noteRadius, noteFontSize, fretFontSize, isMain ? 1.5 : 2.0);
+
+    const viewBoxString = targetSVG.getAttribute('viewBox') || `0 0 ${targetSVG.clientWidth || 1000} ${targetSVG.clientHeight || DEFAULT_SVG_HEIGHT}`;
+    const [, , viewBoxWidth, viewBoxHeight] = viewBoxString.split(' ').map(Number);
+    const FRETBOARD_START_X = SVG_HORIZONTAL_PADDING / 2;
+    const FRETBOARD_START_Y = 20;
+    const FRETBOARD_HEIGHT = Math.max(60, viewBoxHeight - 40);
+    const effectiveFretWidth = (viewBoxWidth - SVG_HORIZONTAL_PADDING) / Math.max(1, numFretsToDisplay);
+    const STRING_HEIGHT = FRETBOARD_HEIGHT / (NUM_STRINGS - 1);
+
+    voicing.forEach(notePos => {
+        const string = notePos.string;
+        const fret = Number(notePos.fret || 0); // Ensure fret is a number
+        const noteName = notePos.originalNote || notePos.note;
+        
+        // Check if the note should be drawn in the current view
+        if ((fret >= startFret && fret < startFret + numFretsToDisplay) || (fret === 0 && startFret > 0)) {
+            let x;
+            if (fret === 0) {
+              // If open string, draw circle left of the nut
+         x = FRETBOARD_START_X - (effectiveFretWidth / 3);
+         } else {
+          // Corrected: Subtract 1 from the fret value to align with the visual frets
+         x = FRETBOARD_START_X + (fret - startFret - 1) * effectiveFretWidth + effectiveFretWidth / 2;
+    }
+
+            // THIS IS THE ORIGINAL Y CALCULATION, WHICH WE ASSUME IS CORRECT FOR YOUR GRAPHICS
+            const y = FRETBOARD_START_Y + (string - 1) * STRING_HEIGHT; 
+            const r = isMain ? BASE_NOTE_RADIUS : Math.max(7, BASE_NOTE_RADIUS * 0.7);
+            const nf = isMain ? BASE_NOTE_FONT_SIZE * 0.8 : BASE_NOTE_FONT_SIZE * 0.58;
+            targetSVG.innerHTML += `<circle cx="${x}" cy="${y}" r="${r}" fill="#f8fafc" stroke="rgba(0,0,0,0.06)" stroke-width="1.2" class="note-circle" />`;
+            targetSVG.innerHTML += `<text x="${x}" y="${y}" text-anchor="middle" alignment-baseline="central" font-size="${nf}" fill="#0b1220" class="note-text" font-weight="700">${noteName}</text>`;
+        }
+    });
+}
+
+        // --- Voicing info utilities ---
+        function formatPcNames(pcs){
+            if(!pcs || pcs.length===0) return '';
+            return pcs.map(p=>{
+                if(typeof p === 'number') return vl_nameFromPc(p);
+                return String(p);
+            }).join(', ');
+        }
+
+        function updateVoicingInfo({ title=null, targetDegree=null, targetChordPcs=null, autoFrozen=null, predictedVoicing=null, currentVoicing=null } = {}) {
+            if(!voicingInfoBox) return;
+            const parts = [];
+            if(title) parts.push(`<div class="row"><strong class="label">${title}</strong></div>`);
+            if(targetDegree !== null) parts.push(`<div class="row"><span class="label">Target degree:</span> <span class="mono">${targetDegree}</span></div>`);
+            if(targetChordPcs) parts.push(`<div class="row"><span class="label">Target chord tones:</span> <span class="mono">${formatPcNames(targetChordPcs)}</span></div>`);
+            if(autoFrozen && autoFrozen.length) parts.push(`<div class="row"><span class="label">Auto‑Frozen Tones:</span> <span class="mono">${formatPcNames(autoFrozen)}</span></div>`);
+            if(predictedVoicing) parts.push(`<div class="row"><span class="label">Predicted Voicing (V1..):</span> <span class="mono">${predictedVoicing.join(', ')}</span></div>`);
+            if(currentVoicing) {
+                const notes = currentVoicing.map(n => n.originalNote || n.note || `${n.fret}@${n.string}`);
+                parts.push(`<div class="row"><span class="label">Current voicing:</span> <span class="mono">${notes.join(', ')}</span></div>`);
+            }
+            if(parts.length === 0){ voicingInfoBox.hidden = true; voicingInfoBox.innerHTML = ''; return; }
+            voicingInfoBox.innerHTML = parts.join('') + `<button class="dismiss" aria-label="Dismiss info" title="Dismiss" onclick="this.parentNode.hidden=true">×</button>`;
+            voicingInfoBox.hidden = false;
+        }
+
+        function clearVoicingInfo(){ updateVoicingInfo(); }
+
+function displayCurrentVoicing() {
+    const emptyState = document.getElementById('empty-state-placeholder');
+    const fretboard = document.getElementById('fretboard-diagram');
+    const outputControls = document.querySelector('.output-controls');
+
+    // Check if there are any voicings to display
+    if (allVoicings.length > 0 && allVoicings[currentVoicingIndex]) {
+        // --- If there ARE results ---
+        emptyState.style.display = 'none'; // Hide the message
+        fretboard.style.display = 'block'; // Show the fretboard
+        outputControls.style.display = 'flex'; // Show the nav buttons
+
+        const voicing = allVoicings[currentVoicingIndex];
+        drawVoicing(fretboard, voicing); // Draw the voicing on the fretboard
+        
+        optionNumberElement.textContent = `Option ${currentVoicingIndex + 1} of ${allVoicings.length}`;
+        prevButton.disabled = currentVoicingIndex === 0;
+        nextButton.disabled = currentVoicingIndex >= allVoicings.length - 1;
+        [playVoicingButton, storeVoicingButton].forEach(b => b.disabled = false);
+
+        // Update info panel
+        const chordId = vl_identifyChord(noteInputs.map(n=>n.value));
+        const title = chordId ? `${chordId.root} ${chordId.type}` : 'Voicing';
+        updateVoicingInfo({ title, currentVoicing: voicing, targetChordPcs: chordId ? chordId.notes : null });
+
+    } else {
+        // --- If there are NO results (The Empty/Error State) ---
+        emptyState.style.display = 'flex'; // Show the message container
+        fretboard.style.display = 'none'; // Hide the fretboard
+        outputControls.style.display = 'none'; // Hide the nav buttons (prev/next)
+        
+        const predictedNotes = noteInputs.map(input => input.value).filter(Boolean);
+        
+        // Check if we actually have input notes (meaning a search was attempted)
+        if (predictedNotes.length > 0) {
+             // --- Dynamic Error Message ---
+             // Replaces the diagram with a clear "No Results" message and suggestion
+             emptyState.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 40px; margin-bottom: 15px; opacity: 0.9; color: var(--accent-2);"></i>
+                <h3 style="color: var(--text-on-dark); margin: 0 0 10px 0;">No Strict Voicings Found</h3>
+                <p style="font-size: 1.1em; margin-bottom: 12px; color: var(--text-on-dark);">
+                    Predicted: <span style="font-family: monospace; color: var(--accent-1);">${predictedNotes.join(', ')}</span>
+                </p>
+                <p style="color: var(--muted); max-width: 320px; line-height: 1.5; margin: 0 auto;">
+                    Try expanding the Fret/String range, or use <strong>Flexible Search</strong>.
+                </p>
+             `;
+             // Clear the bottom text since we are showing it in the main area
+             optionNumberElement.textContent = ""; 
+        } else {
+            // --- Default Start State ---
+            emptyState.innerHTML = `
+                <i class="fa-solid fa-music" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                <h3 style="margin: 0 0 10px 0; color: var(--text-on-dark);">Find Your First Voicing</h3>
+                <p style="color: var(--muted);">Enter notes above and click 'Next Chord' or 'Strict Search' to begin.</p>
+            `;
+            optionNumberElement.textContent = "Enter notes to search";
+        }
+        
+        [prevButton, nextButton, playVoicingButton, storeVoicingButton].forEach(b => b.disabled = true);
+        clearVoicingInfo();
+    }
+}
+
+        // Sound engine
+        let audioContext;
+        const stringFrequencies = {1:329.63,2:246.94,3:196.00,4:146.83,5:110.00,6:82.41};
+        function initAudioContext(){ if(!audioContext) audioContext = new (window.AudioContext||window.webkitAudioContext)(); }
+        function playNote(string,fret){
+            initAudioContext();
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const filter = audioContext.createBiquadFilter();
+            const frequency = stringFrequencies[string] * Math.pow(2, (Number(fret) + 0) / 12);
+            osc.type='sine'; osc.frequency.value = frequency;
+            filter.type='lowpass'; filter.frequency.value=2500; filter.Q.value=1;
+            const now = audioContext.currentTime; const attack=0.04, decay=0.5, sustain=0.25, release=0.6;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.28, now+attack);
+            gain.gain.linearRampToValueAtTime(sustain, now+attack+decay);
+            gain.gain.setValueAtTime(sustain, now+0.9);
+            gain.gain.linearRampToValueAtTime(0, now+0.9+release);
+            osc.connect(filter); filter.connect(gain); gain.connect(audioContext.destination);
+            osc.start(now); osc.stop(now+0.9+release+0.05);
+        }
+        function playVoicing() {
+            const v = allVoicings[currentVoicingIndex];
+            if (!v || v.length===0) { optionNumberElement.textContent = "No chord to play. Find a voicing first."; return; }
+            const noteNames = v.map(n => n.originalNote || n.note).filter(Boolean);
+            const absolutePitches = resolveAbsolutePitches(noteNames, appState.currentAbsolutePitches);
+            appState.currentAbsolutePitches = absolutePitches;
+            playGuitarChord(absolutePitches);
+        }
+
+        // Saved voicings
+        function loadSavedVoicings(){ try{ const s=localStorage.getItem('savedGuitarVoicings'); return s?JSON.parse(s):[] }catch(e){return[];} }
+        function saveVoicing(voicing){
+            const saved = loadSavedVoicings();
+            const key = JSON.stringify(voicing.map(v=>({fret:v.fret,string:v.string})));
+            if (saved.some(s=>JSON.stringify(s.voicing.map(v=>({fret:v.fret,string:v.string})))===key)) {
+                storeVoicingButton.textContent = "Already Saved!";
+                setTimeout(()=> storeVoicingButton.textContent = "Store Position", 1300);
+                return;
+            }
+            const item = { id:Date.now(), label: voicing.map(v=>v.originalNote||v.note).join('-'), voicing };
+            saved.push(item); localStorage.setItem('savedGuitarVoicings', JSON.stringify(saved)); renderSavedVoicings();
+            storeVoicingButton.textContent = "Saved!"; setTimeout(()=> storeVoicingButton.textContent = "Store Position",1300);
+        }
+        function deleteVoicing(id){ let s=loadSavedVoicings(); s=s.filter(x=>x.id!==id); localStorage.setItem('savedGuitarVoicings', JSON.stringify(s)); renderSavedVoicings(); }
+
+        function renderSavedVoicings(){
+            savedVoicingsContainer.innerHTML=''; const saved = loadSavedVoicings();
+            if(!saved || saved.length===0){
+                savedVoicingsContainer.innerHTML = `<div style="width:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);padding:14px">No saved voicings yet</div>`;
+                return;
+            }
+
+            saved.forEach(item=>{
+                const div = document.createElement('div');
+                div.className='saved-voicing-item';
+                div.innerHTML = `<span class="saved-voicing-label" title="${item.label}">${item.label.replace(/-/g,'•')}</span>`;
+                const mini = document.createElementNS("http://www.w3.org/2000/svg","svg");
+                mini.setAttribute('preserveAspectRatio','xMidYMid meet');
+                // set an initial viewBox - drawFretboard will override with correct sizing
+                mini.setAttribute('viewBox','0 0 400 150');
+                // fixed visual height for mini boards for consistent layout
+                mini.style.width = '100%';
+                mini.style.height = '120px';
+                mini.style.display = 'block';
+                div.appendChild(mini);
+
+                // compute a compact window for the mini board based on the voicing frets
+                const frets = item.voicing.map(v=>Math.max(0, Number(v.fret || 0)));
+                let minF = frets.length ? Math.min(...frets) : 0;
+                let maxF = frets.length ? Math.max(...frets) : Math.min(5, NUM_FRETS);
+                // add a little breathing room
+                minF = Math.max(0, minF - 1);
+                maxF = Math.min(NUM_FRETS, maxF + 1);
+                const span = Math.max(1, maxF - minF);
+                // choose numFrets for mini - keep compact between 4 and 8
+                const numFrets = Math.min(8, Math.max(4, span + 2));
+                const startFret = Math.max(0, minF);
+
+                // Draw mini with computed window so it stays compact and legible
+                drawVoicing(mini, item.voicing, startFret, numFrets);
+
+                const del = document.createElement('button'); del.textContent='Remove'; del.className='saved-remove-btn';
+                del.addEventListener('click', ()=> deleteVoicing(item.id));
+                div.appendChild(del);
+                savedVoicingsContainer.appendChild(div);
+            });
+        }
+
+        // Events
+        findVoicingStrictButton.addEventListener('click', ()=>{ allVoicings = findAndFilterVoicingsStrict(); currentVoicingIndex = 0; displayCurrentVoicing(); });
+        findVoicingFlexibleButton.addEventListener('click', ()=>{ allVoicings = findAndFilterVoicingsFlexible(); currentVoicingIndex = 0; displayCurrentVoicing(); });
+        if (generateVoicingButton) generateVoicingButton.addEventListener('click', generateInitialVoicing);
+        storeVoicingButton.addEventListener('click', ()=> { if (allVoicings.length>0) saveVoicing(allVoicings[currentVoicingIndex]); });
+        prevButton.addEventListener('click', ()=> { if (currentVoicingIndex>0) { currentVoicingIndex--; displayCurrentVoicing(); } });
+        nextButton.addEventListener('click', ()=> { if (currentVoicingIndex < allVoicings.length-1) { currentVoicingIndex++; displayCurrentVoicing(); } });
+        playVoicingButton.addEventListener('click', playVoicing);
+        window.addEventListener('resize', ()=>{ displayCurrentVoicing(); adjustCvNavForMobile(); });
+
+        displayCurrentVoicing();
+        renderSavedVoicings();
+
+        // --- Voice Leading Predictor logic ---
+    // State to remember the previous quartal basis so stepping/cycling is stable
+    let vl_lastQuartalBaseDegree = null; // zero-based index into scale for last quartal root
+    let vl_lastQuartalNames = null; // array of note names for last quartal chord
+    
+    // State to remember the last theoretical bass note for TBN I (to avoid infinite loops)
+    let vl_lastTBN_BassDegree = null; // zero-based index into scale for last TBN I bass
+    let vl_lastTBN_BassNoteName = null; // actual note name (e.g., 'D') for verification
+    
+        const vl_notesMap = { 'C':0,'C#':1,'DB':1,'D':2,'D#':3,'EB':3,'E':4,'F':5,'F#':6,'GB':6,'G':7,'G#':8,'AB':8,'A':9,'A#':10,'BB':10,'B':11 };
+// Goodrick Style: Prefer Flats (Db, Eb, Gb, Ab, Bb) over Sharps
+        const vl_noteNames = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+
+        const vl_scales = {
+            'major': [0,2,4,5,7,9,11],
+            'minor': [0,2,3,5,7,8,10],
+            'harmonic minor': [0,2,3,5,7,8,11],
+            'melodic minor': [0,2,3,5,7,9,11]
+        };
+        const vl_chordStructures = {
+            'maj7':[0,4,7,11],'m7':[0,3,7,10],'7':[0,4,7,10],'m7b5':[0,3,6,10],
+            'm(maj7)': [0,3,7,11],'maj7(#5)': [0,4,8,11],'dim7': [0,3,6,9],
+            'maj': [0,4,7],'min': [0,3,7],'dim': [0,3,6],'aug': [0,4,8]
+        };
+        const vl_diatonicChords = {
+            'major': ['maj7','m7','m7','maj7','7','m7','m7b5'],
+            'minor': ['m7','m7b5','maj7','m7','m7','maj7','7'],
+            'harmonic minor': ['m(maj7)','m7b5','maj7(#5)','m7','7','maj7','dim7'],
+            'melodic minor': ['m(maj7)','m7','maj7(#5)','7','7','m7b5','m7b5']
+        };
+        const vl_diatonicTriads = {
+            'major': ['maj','min','min','maj','maj','min','dim'],
+            'minor': ['min','dim','maj','min','min','maj','maj'],
+            'harmonic minor':['min','dim','aug','min','maj','maj','dim'],
+            'melodic minor': ['min','min','aug','maj','maj','dim','dim']
+        };
+
+        // TBN I specific voice-leading rules
+        const TBN_I_RULES_VL = {};
+        function defineTBNRules(cycleNum, moves) {
+            TBN_I_RULES_VL[cycleNum] = {};
+            for (let bass = 1; bass <= 7; bass++) {
+                TBN_I_RULES_VL[cycleNum][bass] = {};
+                if (moves['1']) TBN_I_RULES_VL[cycleNum][bass][1] = { move: moves['1'] };
+                if (moves['2']) TBN_I_RULES_VL[cycleNum][bass][2] = { move: moves['2'] };
+                if (moves['5']) TBN_I_RULES_VL[cycleNum][bass][5] = { move: moves['5'] };
+                if (moves['7']) TBN_I_RULES_VL[cycleNum][bass][7] = { move: moves['7'] };
+            }
+        }
+        defineTBNRules(2, { '1': 1, '2': 0, '5': -2, '7': -1 });
+        defineTBNRules(3, { '1': 1, '2': 1, '5': -1, '7': 0 });
+        defineTBNRules(4, { '1': 0, '2': 1, '5': -1, '7': -2 });
+
+        function vl_normalize(s){
+            if(!s) return '';
+            let str = String(s).trim().replace(/♭/g,'b').replace(/♯/g,'#');
+            str = str.replace(/\s+/g,'');
+            if(str.length===0) return '';
+            const first = str.charAt(0).toUpperCase(); const rest = str.slice(1).toLowerCase();
+            return first + rest;
+        }
+        function vl_pc(raw){
+            const n = vl_normalize(raw); if(!n) return -1;
+            const key = n.toUpperCase();
+            return (vl_notesMap[key] !== undefined) ? vl_notesMap[key] : -1;
+        }
+        function vl_nameFromPc(v){ return vl_noteNames[((v%12)+12)%12]; }
+        function vl_getScale(root, type){
+            const struct = vl_scales[type.toLowerCase()]; const rv = vl_pc(root);
+            if(!struct || rv < 0) return null;
+            return struct.map(i => vl_nameFromPc(rv + i));
+        }
+
+        // Build a diatonic quartal chord by stacking diatonic fourths inside a given scale.
+        // FIX: Now compares Pitch Classes (integers) instead of Note Names (strings)
+        function buildQuartalChord(rootNote, scaleSpec, count){
+            if(!rootNote) throw new Error('rootNote required');
+            if(!scaleSpec) throw new Error('scaleSpec required');
+            if(!Number.isInteger(count) || count <= 0) throw new Error('count must be a positive integer');
+
+            const rn = vl_normalize(rootNote);
+            let scaleRoot = rn;
+            let scaleType = String(scaleSpec).trim();
+            const tokens = scaleType.split(/\s+/).filter(Boolean);
+            if(tokens.length > 1 && vl_pc(tokens[0]) !== -1){
+                scaleRoot = vl_normalize(tokens[0]);
+                scaleType = tokens.slice(1).join(' ');
+            }
+
+            const scaleNotes = vl_getScale(scaleRoot, scaleType);
+            if(!scaleNotes) throw new Error(`unknown scale: ${scaleRoot} ${scaleType}`);
+
+            // FIX: Compare by Pitch Class (vl_pc) instead of String Name
+            const inputPc = vl_pc(rn);
+            const startIdx = scaleNotes.findIndex(s => vl_pc(s) === inputPc);
+            
+            if(startIdx === -1) throw new Error(`${rootNote} is not diatonic to ${scaleRoot} ${scaleType}`);
+
+            const chord = [];
+            let idx = startIdx;
+            for(let i=0;i<count;i++){
+                chord.push(scaleNotes[idx % scaleNotes.length]);
+                idx += 3; // move up a diatonic fourth (three scale degrees)
+            }
+            return chord;
+        }
+
+        // Helper function: getDiatonicTriadQuality
+        function getDiatonicTriadQuality(triadRootNote, scaleRoot, scaleType) {
+            const scaleNotes = vl_getScale(scaleRoot, scaleType);
+            if(!scaleNotes) throw new Error(`Invalid scale: ${scaleRoot} ${scaleType}`);
+
+            const rootNorm = vl_normalize(triadRootNote);
+            
+            // FIX: Compare by Pitch Class
+            const inputPc = vl_pc(rootNorm);
+            const rootIdx = scaleNotes.findIndex(s => vl_pc(s) === inputPc);
+            
+            if(rootIdx === -1) throw new Error(`${triadRootNote} is not in scale ${scaleRoot} ${scaleType}`);
+
+            const triadNotes = [
+                scaleNotes[rootIdx],                              
+                scaleNotes[(rootIdx + 2) % scaleNotes.length],    
+                scaleNotes[(rootIdx + 4) % scaleNotes.length]     
+            ];
+
+            const triadPcs = triadNotes.map(vl_pc);
+            const rootPc = triadPcs[0];
+            const intervals = triadPcs.map(pc => ((pc - rootPc + 12) % 12));
+            intervals.sort((a,b) => a - b);
+
+            const intervalsStr = JSON.stringify(intervals);
+            if(intervalsStr === JSON.stringify([0, 4, 7])) return 'maj';
+            if(intervalsStr === JSON.stringify([0, 3, 7])) return 'min';
+            if(intervalsStr === JSON.stringify([0, 3, 6])) return 'dim';
+            return 'maj';
+        }
+
+        // Main function: buildTBN_I_Chord
+        function buildTBN_I_Chord(bassNote, scaleRoot, scaleType) {
+            const scaleNotes = vl_getScale(scaleRoot, scaleType);
+            if(!scaleNotes) throw new Error(`Invalid scale: ${scaleRoot} ${scaleType}`);
+
+            const bassNorm = vl_normalize(bassNote);
+            
+            // FIX: Compare by Pitch Class
+            const bassInputPc = vl_pc(bassNorm);
+            const bassIdx = scaleNotes.findIndex(s => vl_pc(s) === bassInputPc);
+            
+            if(bassIdx === -1) throw new Error(`${bassNote} is not in scale ${scaleRoot} ${scaleType}`);
+
+            // For a 7th chord on bassNote, the 3rd is 2 scale steps up
+            const thirdOf7thIdx = (bassIdx + 2) % scaleNotes.length;
+            
+            // The triad for TBN I is built a 3rd above that
+            const triadRootIdx = (bassIdx + 4) % scaleNotes.length;
+            const triadRoot = scaleNotes[triadRootIdx];
+
+            // Determine the quality of the triad built on that root
+            const triadQuality = getDiatonicTriadQuality(triadRoot, scaleRoot, scaleType);
+
+            // Get the triad notes (root, 3rd, 5th)
+            const triad3rdIdx = (triadRootIdx + 2) % scaleNotes.length;
+            const triad5thIdx = (triadRootIdx + 4) % scaleNotes.length;
+            
+            const triadRootNote = scaleNotes[triadRootIdx];
+            const triad3rdNote = scaleNotes[triad3rdIdx];
+            const triad5thNote = scaleNotes[triad5thIdx];
+
+            const bassPc = vl_pc(bassNote);
+            const triad3rdPc = vl_pc(triad3rdNote);
+            const triadRootPc = vl_pc(triadRootNote);
+            const triad5thPc = vl_pc(triad5thNote);
+
+            // Return in natural triad order: [bass, triad-root, triad-3rd, triad-5th]
+            const finalChordPcs = [bassPc, triadRootPc, triad3rdPc, triad5thPc];
+
+            return finalChordPcs;
+        }
+                    // --- התחלת בדיקות קונסולה (גרסה מתוקנת) ---
+            
+
+            // בדיקה 1: C major, אקורד C קוורטלי (3 תווים)
+            try {
+                const chord1 = buildQuartalChord('C', 'C major', 3);
+                
+            } catch (error) {
+                console.error("שגיאה בבדיקה 1:", error.message);
+            }
+
+            // בדיקה 2: C major, אקורד D קוורטלי (4 תווים)
+            try {
+                const chord2 = buildQuartalChord('D', 'C major', 4);
+                
+            } catch (error) {
+                console.error("שגיאה בבדיקה 2:", error.message);
+            }
+
+            // בדיקה 3: G minor, אקורד G קוורטלי (3 תווים)
+            try {
+                // תיקון: משתמשים בשם הסולם 'minor' כפי שהוא מוגדר בקוד
+                const chord3 = buildQuartalChord('G', 'G minor', 3);
+                
+            } catch (error) {
+                console.error("שגיאה בבדיקה 3:", error.message);
+            }
+
+            // בדיקה 4: G harmonic minor, אקורד G קוורטלי (3 תווים)
+            try {
+                const chord4 = buildQuartalChord('G', 'G harmonic minor', 3);
+                
+            } catch (error) {
+                console.error("שגיאה בבדיקה 4:", error.message);
+            }
+
+            // בדיקות שגיאה נשארות אותו דבר...
+            // ...
+
+        function vl_identifyChord(notes){
+            const pcs = [...new Set(notes.map(vl_normalize).filter(Boolean).map(vl_pc).filter(v=>v>=0))].sort((a,b)=>a-b);
+            if(pcs.length < 3) return null;
+            for(const rootName of vl_noteNames){
+                const r = vl_pc(rootName);
+                for(const type in vl_chordStructures){
+                    const structure = vl_chordStructures[type];
+                    const chordPc = structure.map(i => ((r + i)%12+12)%12).sort((a,b)=>a-b);
+                    if(chordPc.length===pcs.length && chordPc.every((v,i)=>v===pcs[i])){
+                        return { root: rootName, type, notes: chordPc.map(vl_nameFromPc) };
+                    }
+                }
+            }
+            return null;
+        }
+        function vl_indicesInScale(pcVal, scalePcs){
+            const res=[]; for(let i=0;i<scalePcs.length;i++){ if(((scalePcs[i]%12)+12)%12 === ((pcVal%12)+12)%12) res.push(i); } return res;
+        }
+        function vl_findClosestInDirection(startRaw, targetPcs, dir, thresholdSteps, usedSet, scalePcs){
+            const startPc = vl_pc(startRaw); if(startPc<0) return null;
+            const startIdxs = vl_indicesInScale(startPc, scalePcs); const sIdxCandidates = startIdxs.length?startIdxs:[0];
+            let best=null, bestSteps=Infinity;
+            for(const tpc of targetPcs){
+                if(usedSet.has(tpc)) continue;
+                const tIdxs = vl_indicesInScale(tpc, scalePcs); const tIdxCandidates = tIdxs.length?tIdxs:[0];
+                for(const si of sIdxCandidates){
+                    for(const ti of tIdxCandidates){
+                        for(let k=-1;k<=1;k++){
+                            const stepsUp = (ti - si) + k*7; const stepsDown = -stepsUp;
+                            if(dir === 1 && stepsUp > 0 && stepsUp <= thresholdSteps && stepsUp < bestSteps){ bestSteps = stepsUp; best = tpc; }
+                            else if(dir === -1 && stepsDown > 0 && stepsDown <= thresholdSteps && stepsDown < bestSteps){ bestSteps = stepsDown; best = tpc; }
+                            else if(dir === 0){ const absSteps = Math.abs(stepsUp); if(absSteps <= thresholdSteps && absSteps < bestSteps){ bestSteps = absSteps; best = tpc; } }
+                        }
+                    }
+                }
+            }
+            if(best === null && dir !== 0){
+                for(const tpc of targetPcs){ if(usedSet.has(tpc)) continue; if(((tpc%12)+12)%12 === ((startPc%12)+12)%12){ best = tpc; break; } }
+            }
+            return best;
+        }
+        function vl_mapVoices(inputVoices, nextChordPcs, dir, vlThresholdSteps, frozenPcsSet, scalePcs, specificRules, ruleContext){
+            const assigned = new Array(inputVoices.length).fill(null);
+            const used = new Set();
+
+            // 1) Preserve frozen pitch-classes (common tones) in place where possible
+            for(let i=0;i<inputVoices.length;i++){
+                const raw = inputVoices[i]; const vpc = vl_pc(raw);
+                if(vpc >= 0 && frozenPcsSet && frozenPcsSet.has(vpc)){
+                    if(nextChordPcs.includes(vpc) && !used.has(vpc)){
+                        assigned[i]=vpc; used.add(vpc); continue;
+                    }
+                    const pick = vl_findClosestInDirection(raw, nextChordPcs, 0, 7, used, scalePcs);
+                    if(pick!==null){ assigned[i]=pick; used.add(pick); }
+                }
+            }
+
+// 2) If a specific ruleset is provided (e.g., TBN I), apply Relative Degree Voice Leading
+            if(specificRules && scalePcs && scalePcs.length){
+                // Determine active rules based on context (e.g. Cycle)
+                let activeRules = specificRules;
+                if(ruleContext !== undefined && specificRules[ruleContext]){
+                    activeRules = specificRules[ruleContext];
+                }
+
+                // CRITICAL FIX: Calculate degrees RELATIVE to the current Bass note
+                // We assume inputVoices[0] is the bass because we handled that in runPredict for TBN
+                const bassRaw = inputVoices[0];
+                const bassPc = vl_pc(bassRaw);
+                // Find where the bass is in the scale (0-6)
+                let bassScaleIdx = -1;
+                const bIndices = vl_indicesInScale(bassPc, scalePcs);
+                if (bIndices && bIndices.length > 0) bassScaleIdx = bIndices[0];
+
+                if (bassScaleIdx !== -1) {
+                    for(let i=0;i<inputVoices.length;i++){
+                        if(assigned[i] !== null) continue;
+                        const raw = inputVoices[i]; const vpc = vl_pc(raw);
+                        if(vpc < 0) continue;
+                        
+                        const scaleIdxs = vl_indicesInScale(vpc, scalePcs);
+                        if(!scaleIdxs || scaleIdxs.length === 0) continue;
+
+                        // Try mapping based on relative scale degree
+                        for(const si of scaleIdxs){
+                            // Calculate relative degree (1-based): 1..7
+                            // Formula: (NoteIndex - BassIndex + 7) % 7 + 1
+                            // Example: if Bass=C(0), Note=G(4) -> (4-0)=4 -> deg 5.
+                            const relativeDegree = ((si - bassScaleIdx) % 7 + 7) % 7 + 1;
+                            
+                            const rule = activeRules[relativeDegree];
+                            if(!rule) continue;
+
+                            // Apply movement offset to the ABSOLUTE scale index
+                            const targetDegIdx = ((si + rule.move) % 7 + 7) % 7;
+                            const targetPc = scalePcs[targetDegIdx];
+
+                            // Check if the calculated target note is valid in the next chord
+                            if(nextChordPcs.includes(targetPc) && !used.has(targetPc)){
+                                assigned[i] = targetPc;
+                                used.add(targetPc);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3) Fall back to nearest-neighbor / directional matching for remaining voices
+            for(let i=0;i<inputVoices.length;i++){
+                if(assigned[i] !== null) continue;
+                const raw = inputVoices[i];
+                const pick = vl_findClosestInDirection(raw, nextChordPcs, dir, vlThresholdSteps, used, scalePcs);
+                if(pick !== null){ assigned[i]=pick; used.add(pick); }
+            }
+
+            // 4) Fill any remaining unassigned slots with leftover chord tones
+            for(let i=0;i<assigned.length;i++){
+                if(assigned[i]===null){
+                    const available = nextChordPcs.filter(p=>!used.has(p));
+                    if(available.length>0){ assigned[i]=available[0]; used.add(available[0]); }
+                }
+            }
+
+            return assigned.filter(v=>v!==null);
+        }
+
+        // Apply a voicing transformation to an array of pitch-classes (numbers 0..11)
+        // voicingType: 'default_close' | 'drop3' | ...
+        function applyVoicingTransformation(pitchClasses, voicingType, scaleRoot, scaleType){
+            if(!pitchClasses || !Array.isArray(pitchClasses)) return pitchClasses;
+            if(!voicingType || voicingType === 'default_close') return pitchClasses;
+            if(voicingType === 'drop3'){
+                return transformToDrop3(pitchClasses, scaleRoot, scaleType);
+            }
+            if(voicingType === 'drop2'){
+                return transformToDrop2(pitchClasses, scaleRoot, scaleType);
+            }
+            // unknown voicing type -> no-op
+            return pitchClasses;
+        }
+
+        // Placeholder for Drop 3 transformation. For now this is a no-op and returns
+        // the same pitchClasses array. We'll implement the actual octave shifting
+        // logic in a follow-up step.
+        function transformToDrop3(pitchClasses, scaleRoot, scaleType){
+            // pitchClasses is an array of integers 0..11 representing pitch classes
+            try {
+                if(!pitchClasses || !Array.isArray(pitchClasses)) return pitchClasses;
+                // Work on a shallow copy
+                const pcs = pitchClasses.slice();
+                // If fewer than 3 notes, nothing to drop
+                if(pcs.length < 3) return pcs;
+
+                // We'll produce a deterministic ordering within a single octave.
+                // Map pitch-classes to 0..11 and sort ascending (low->high within octave)
+                const uniquePcs = pcs.map(p=>((p%12)+12)%12);
+                // For sorting stability with duplicates, keep original indices
+                const indexed = uniquePcs.map((v,i)=>({v,i,orig:pcs[i]}));
+                indexed.sort((a,b)=> a.v - b.v || a.i - b.i);
+                const sorted = indexed.map(x=>x.v);
+
+                // Determine the index of the 2nd-highest tone (i.e., the one just below the top)
+                // For N tones, 2nd-highest is at position sorted.length - 2
+                const idxToDrop = Math.max(0, sorted.length - 2);
+
+                // If there's only 2 notes, dropping the 2nd-highest would invert the interval; skip for safety
+                if(sorted.length < 3) return pcs;
+
+                // Create the new ordering: remove the chosen tone and push it to the bottom (i.e., lower by an octave)
+                const droppedPc = sorted.splice(idxToDrop, 1)[0];
+                const transformed = [...sorted, droppedPc];
+
+                // Map transformed pitch-classes back to names for downstream code that expects names via vl_nameFromPc
+                // But the voicing pipeline expects pitch-classes (numbers), so return numbers.
+                
+                return transformed;
+            } catch (e) {
+                console.error('transformToDrop3 failed', e);
+                return pitchClasses;
+            }
+        }
+
+        // Implement Drop 2 transformation for 4-note close voicings.
+        // Steps:
+        // 1. Arrange input pitch classes into a close-position single-octave ordering (low->high).
+        // 2. Identify the 2nd-from-top note (index sorted.length - 2).
+        // 3. "Drop" that note by an octave: represent this by moving it to the bass (front).
+        // 4. Return the new ordering of pitch classes (numbers 0..11).
+        function transformToDrop2(pitchClasses){
+            try {
+                if(!pitchClasses || !Array.isArray(pitchClasses)) return pitchClasses;
+                const pcs = pitchClasses.slice();
+                if(pcs.length < 3) return pcs; // nothing meaningful to drop
+                // If the incoming array looks like a TBN I construction (bass, triadRoot, triad3rd, triad5th)
+                // then the musical Drop‑2 voicing we want is: [triad3rd, triad5th, triadRoot, bass]
+                // which for input pcs == [bass, triadRoot, triad3rd, triad5th] becomes [pcs[2], pcs[3], pcs[1], pcs[0]]
+                if(pcs.length >= 4){
+                    // Heuristic: if the first element appears to be the bass (distinct from others)
+                    // then apply the TBN I Drop‑2 ordering which matches the example D F B E.
+                    const bass = pcs[0];
+                    const rest = pcs.slice(1,4);
+                    // simple uniqueness check
+                    const uniq = new Set(pcs.map(p=>((p%12)+12)%12));
+                    if(uniq.size >= 3){
+                        const transformed = [ pcs[2], pcs[3] || pcs[2], pcs[1] || pcs[2], pcs[0] ];
+                        
+                        return transformed;
+                    }
+                }
+
+                // Fallback generic algorithm: normalize to 0..11 and build deterministic close ordering (low->high)
+                const normalized = pcs.map(p => ((p % 12) + 12) % 12);
+                // Keep stable ordering for duplicates by tracking original indices
+                const indexed = normalized.map((v,i) => ({v, i, orig: pcs[i]}));
+                indexed.sort((a,b) => a.v - b.v || a.i - b.i);
+                const sorted = indexed.map(x => x.v);
+
+                // 2nd-from-top is at position length - 2
+                const idxToDrop = Math.max(0, sorted.length - 2);
+                // Remove the note and make it the bass (front)
+                const dropped = sorted.splice(idxToDrop, 1)[0];
+                const transformed = [dropped, ...sorted];
+
+                
+                return transformed;
+            } catch (e) {
+                console.error('transformToDrop2 failed', e);
+                return pitchClasses;
+            }
+        }
+
+        function vl_diatonicChordPcs(scaleRoot, scaleType, degree, chordFamily='7th'){
+            const scale = vl_getScale(scaleRoot, scaleType); if(!scale) return null;
+            const idx = (degree-1+7)%7;
+            let chordType;
+            if(chordFamily === 'triad'){ const map = vl_diatonicTriads[scaleType]; if(!map) return null; chordType = map[idx]; }
+            else { const map = vl_diatonicChords[scaleType]; if(!map) return null; chordType = map[idx]; }
+            const structure = vl_chordStructures[chordType]; if(!structure) return null;
+            const rootPc = vl_pc(scale[idx]);
+            return structure.map(i => ((rootPc + i) % 12 + 12)%12);
+        }
+
+        function setNoteInputsFromArray(arr){
+            for(let i=0;i<4;i++){
+                const el = noteInputs[i];
+                if(!el) continue;
+                el.value = arr[i] !== undefined && arr[i] !== null ? arr[i] : '';
+            }
+        }
+
+        function runPredict(harmonicDirection){
+            // Capture current inputs; we'll push to history only if prediction proceeds successfully
+            const prePredictSnapshot = noteInputs.map(n => n.value || '');
+            let tbnCurrentBassDegree = null; // Context for TBN I voice leading
+
+            const scaleRoot = scaleRootEl.value || 'C';
+            const scaleType = (scaleTypeEl.value || 'major').toLowerCase();
+            const cycleVal = parseInt(cycleEl.value,10) || 1;
+            const vlInterval = Math.max(0, parseInt(vlIntervalInput.value,10) || 2);
+            const vlDir = vlDirState;
+            const inputVoices = noteInputs.map(n=> vl_normalize(n.value));
+
+            // Read chord type selection early and branch logic accordingly
+            const chordTypeVal = (document.getElementById('chordTypeSelect') || document.getElementById('chordType')) ? ((document.getElementById('chordTypeSelect') || document.getElementById('chordType')).value || 'triadic_7th') : 'triadic_7th';
+
+            // For triadic/7th chords, follow the existing flow which identifies the chord and computes the next degree
+            let chordIdent = null;
+            let chordFamily = '7th';
+            let targetDegree = null;
+            let scale = vl_getScale(scaleRoot, scaleType);
+            if(chordTypeVal === 'triadic_7th'){
+                // Identify current chord
+                chordIdent = vl_identifyChord(inputVoices);
+                if(!chordIdent){ optionNumberElement.textContent = 'Error: cannot identify current chord.'; return; }
+
+                // Only now that we have a valid prediction, record the previous inputs when this is a forward (Next) action
+                if (harmonicDirection === 1) {
+                    try {
+                        const hasValue = prePredictSnapshot.some(v => v && String(v).trim() !== '');
+                        const last = predictHistory.length ? predictHistory[predictHistory.length - 1] : null;
+                        const isDuplicate = last && JSON.stringify(last) === JSON.stringify(prePredictSnapshot);
+                        if (hasValue && !isDuplicate) {
+                            predictHistory.push(prePredictSnapshot);
+                            if (predictHistory.length > MAX_HISTORY) predictHistory.shift();
+                            if (predictPrevBtn) predictPrevBtn.disabled = false;
+                        }
+                    } catch (e) { /* ignore history errors */ }
+                }
+
+                if(!scale){ optionNumberElement.textContent = 'Error: invalid scale'; return; }
+
+                const curRootPc = vl_pc(chordIdent.root);
+                let curDegreeIndex = scale.map(vl_pc).indexOf(curRootPc);
+                if(curDegreeIndex === -1){ optionNumberElement.textContent = 'Error: starting chord root not in scale.'; return; }
+
+                const struct = vl_chordStructures[chordIdent.type];
+                chordFamily = (struct && struct.length === 3) ? 'triad' : '7th';
+
+                targetDegree = ((curDegreeIndex + (cycleVal * harmonicDirection)) % 7 + 7) % 7 + 1;
+            } else if (chordTypeVal === '3_part_4ths' || chordTypeVal === '4_part_4ths'){
+                // Quartal flow: SKIP chord identification. We'll infer the base degree
+                // from prior quartal state when possible so cycling advances predictably
+                // even when the UI input ordering (voice-leading) changes.
+                const inputNormalized = noteInputs.map(n => vl_normalize(n.value)).filter(Boolean);
+                if(!inputNormalized || inputNormalized.length === 0){ optionNumberElement.textContent = 'Error: no input notes to infer base note.'; return; }
+
+                // Ensure scale is valid
+                scale = vl_getScale(scaleRoot, scaleType);
+                if(!scale){ optionNumberElement.textContent = 'Error: invalid scale'; return; }
+
+                // Attempt to reuse the last quartal base degree if the current inputs look
+                // like the same chord members (possibly reordered). This prevents the
+                // base degree from being mis-inferred from voice-leading ordering.
+                let baseDegreeIndex = -1;
+                const inputPcs = inputNormalized.map(vl_pc).filter(v=>v>=0);
+                if (vl_lastQuartalBaseDegree !== null && vl_lastQuartalNames && vl_lastQuartalNames.length) {
+                    const lastPcs = vl_lastQuartalNames.map(vl_pc).filter(v=>v>=0);
+                    const isSubset = inputPcs.length>0 && inputPcs.every(p => lastPcs.includes(p));
+                    if (isSubset) {
+                        baseDegreeIndex = vl_lastQuartalBaseDegree;
+                    }
+                }
+
+                // If we didn't reuse the stored base degree, derive it from the first input
+                // (note1) or the first provided input, and update the stored state.
+                if (baseDegreeIndex === -1) {
+                    // Use the first input box (note1) as the base if present, otherwise the first provided note
+                    const baseNote = vl_normalize(noteInputs[0].value) || inputNormalized[0];
+                    const basePc = vl_pc(baseNote);
+                    baseDegreeIndex = scale.map(vl_pc).indexOf(basePc);
+                    if(baseDegreeIndex === -1){
+                        // try matching by name-insensitive compare (e.g., enharmonic equivalents normalized)
+                        baseDegreeIndex = scale.findIndex(s=> vl_normalize(s).toUpperCase() === vl_normalize(baseNote).toUpperCase());
+                    }
+                    if(baseDegreeIndex === -1){ baseDegreeIndex = 0; }
+                    // update stored state since user-provided inputs appear to have changed
+                    vl_lastQuartalBaseDegree = baseDegreeIndex;
+                    vl_lastQuartalNames = null; // will be set after we compute the new quartal chord
+                }
+
+                // Compute target base degree by applying cycle and direction similar to triadic flow
+                const targetBaseDegree = ((baseDegreeIndex + (cycleVal * harmonicDirection)) % 7 + 7) % 7; // zero-based index
+
+                // Record history for forward action (same rule as triadic)
+                if (harmonicDirection === 1) {
+                    try {
+                        const hasValue = prePredictSnapshot.some(v => v && String(v).trim() !== '');
+                        const last = predictHistory.length ? predictHistory[predictHistory.length - 1] : null;
+                        const isDuplicate = last && JSON.stringify(last) === JSON.stringify(prePredictSnapshot);
+                        if (hasValue && !isDuplicate) {
+                            predictHistory.push(prePredictSnapshot);
+                            if (predictHistory.length > MAX_HISTORY) predictHistory.shift();
+                            if (predictPrevBtn) predictPrevBtn.disabled = false;
+                        }
+                    } catch (e) { /* ignore history errors */ }
+                }
+
+                // Define targetDegree in 1-based to be used later for UI messaging; for quartal we'll use targetBaseDegree to pick root
+                targetDegree = targetBaseDegree + 1;
+                // Attach a synthetic chordIdent so downstream UI shows a helpful label (but we won't use its type)
+                chordIdent = { root: scale[targetBaseDegree], type: (chordTypeVal === '3_part_4ths' ? 'quartal-3' : 'quartal-4') };
+            } else if (chordTypeVal === 'tbn_1') {
+                // TBN I flow: SKIP chord identification
+                // Use MEMORY to track the theoretical bass (to avoid infinite loops caused by voice-leading)
+                const inputNormalized = noteInputs.map(n => vl_normalize(n.value)).filter(Boolean);
+                if(!inputNormalized || inputNormalized.length === 0){ 
+                    optionNumberElement.textContent = 'Error: no input notes to infer base note.'; 
+                    return; 
+                }
+
+                // Ensure scale is valid
+                scale = vl_getScale(scaleRoot, scaleType);
+                if(!scale){ optionNumberElement.textContent = 'Error: invalid scale'; return; }
+
+                // MEMORY SYSTEM: Determine current bass note
+                let currentBaseDegreeIndex;
+                
+                if (vl_lastTBN_BassDegree !== null && vl_lastTBN_BassNoteName !== null) {
+                    // Use MEMORY: We have a previous TBN I bass note stored
+                    currentBaseDegreeIndex = vl_lastTBN_BassDegree;
+                    
+                } else {
+                    // First time or memory cleared: Read from UI (note1)
+                    const currentBaseNote = vl_normalize(noteInputs[0].value) || inputNormalized[0];
+                    const currentBasePc = vl_pc(currentBaseNote);
+                    currentBaseDegreeIndex = scale.map(vl_pc).indexOf(currentBasePc);
+                    
+                    if(currentBaseDegreeIndex === -1){
+                        // try matching by name-insensitive compare
+                        currentBaseDegreeIndex = scale.findIndex(s=> 
+                            vl_normalize(s).toUpperCase() === vl_normalize(currentBaseNote).toUpperCase()
+                        );
+                    }
+                    if(currentBaseDegreeIndex === -1){ currentBaseDegreeIndex = 0; }
+                    
+                }
+
+                // Store for voice leading context
+                tbnCurrentBassDegree = currentBaseDegreeIndex + 1;
+
+                // Calculate target base degree by applying cycle and direction
+                const targetBaseDegree = ((currentBaseDegreeIndex + (cycleVal * harmonicDirection)) % 7 + 7) % 7;
+                const targetBassNoteName = scale[targetBaseDegree];
+                
+                // UPDATE MEMORY with the new theoretical bass
+                vl_lastTBN_BassDegree = targetBaseDegree;
+                vl_lastTBN_BassNoteName = targetBassNoteName;
+                
+                
+                // Record history for forward action
+                if (harmonicDirection === 1) {
+                    try {
+                        const hasValue = prePredictSnapshot.some(v => v && String(v).trim() !== '');
+                        const last = predictHistory.length ? predictHistory[predictHistory.length - 1] : null;
+                        const isDuplicate = last && JSON.stringify(last) === JSON.stringify(prePredictSnapshot);
+                        if (hasValue && !isDuplicate) {
+                            predictHistory.push(prePredictSnapshot);
+                            if (predictHistory.length > MAX_HISTORY) predictHistory.shift();
+                            if (predictPrevBtn) predictPrevBtn.disabled = false;
+                        }
+                    } catch (e) { /* ignore history errors */ }
+                }
+
+                // Set targetDegree for UI messaging
+                targetDegree = targetBaseDegree + 1;
+                
+                // Attach synthetic chordIdent for UI display
+                chordIdent = { root: targetBassNoteName, type: 'TBN I' };
+            } else {
+                optionNumberElement.textContent = 'Error: unknown chord type selection.';
+                return;
+            }
+
+            // Decide chord construction method based on UI selection (triadic/7th vs quartal)
+            // (we already read chordTypeVal above when branching; reuse it here)
+            const chordTypeVal2 = (document.getElementById('chordTypeSelect') || document.getElementById('chordType')) ? ((document.getElementById('chordTypeSelect') || document.getElementById('chordType')).value || 'triadic_7th') : 'triadic_7th';
+            
+            let nextChordPcs = null;
+            // holder for the original quartal note names returned by buildQuartalChord
+            let quartalNamesOutside = null;
+            if (chordTypeVal2 === 'triadic_7th') {
+                // default/legacy path: produce diatonic triads or 7th chords by degree
+                nextChordPcs = vl_diatonicChordPcs(scaleRoot, scaleType, targetDegree, chordFamily);
+                
+                if(!nextChordPcs){ optionNumberElement.textContent = 'Error building target chord.'; return; }
+            } else if (chordTypeVal2 === '3_part_4ths' || chordTypeVal2 === '4_part_4ths') {
+                // Use buildQuartalChord to create diatonic quartal stacks, then convert names to pitch-classes
+                try {
+                    // root note for the target degree inside the scale (we computed targetDegree above in branch)
+                    const scaleNotes = scale; // already computed above in branch
+                    const rootNoteForTarget = scaleNotes[(targetDegree - 1 + 7) % 7];
+                    const scaleSpec = `${scaleRoot} ${scaleType}`;
+                    const count = (chordTypeVal2 === '3_part_4ths') ? 3 : 4;
+                    const quartalNames = buildQuartalChord(rootNoteForTarget, scaleSpec, count);
+                    quartalNamesOutside = quartalNames;
+                    
+                    // store the base degree and names so subsequent predictions can
+                    // recognize this chord even if the UI inputs are reordered by VL
+                    try {
+                        vl_lastQuartalBaseDegree = (targetDegree - 1 + 7) % 7;
+                        vl_lastQuartalNames = quartalNamesOutside.slice();
+                    } catch(e) { /* non-fatal */ }
+                    // convert note names to pitch classes
+                    nextChordPcs = quartalNames.map(n => vl_pc(n)).filter(v => v >= 0);
+                    // Smoke-check logging for quartal branch
+                    
+                    if(!nextChordPcs || nextChordPcs.length === 0){ optionNumberElement.textContent = 'Error building quartal chord.'; return; }
+                } catch (err) {
+                    optionNumberElement.textContent = `Error building quartal chord: ${err && err.message ? err.message : String(err)}`;
+                    return;
+                }
+            } else if (chordTypeVal2 === 'tbn_1') {
+                // TBN I: Build chord using buildTBN_I_Chord function
+                try {
+                    const scaleNotes = scale;
+                    const targetBaseNote = scaleNotes[(targetDegree - 1 + 7) % 7];
+                    
+                    // Call buildTBN_I_Chord to get the 4-note chord
+                    nextChordPcs = buildTBN_I_Chord(targetBaseNote, scaleRoot, scaleType);
+                    
+                    try { 
+                        
+                    } catch(e){}
+                    
+                    if(!nextChordPcs || nextChordPcs.length === 0){ 
+                        optionNumberElement.textContent = 'Error building TBN I chord.'; 
+                        return; 
+                    }
+                } catch (err) {
+                    optionNumberElement.textContent = `Error building TBN I chord: ${err && err.message ? err.message : String(err)}`;
+                    return;
+                }
+            } else {
+                // unknown selection - fallback to diatonic
+                nextChordPcs = vl_diatonicChordPcs(scaleRoot, scaleType, targetDegree, chordFamily);
+                if(!nextChordPcs){ optionNumberElement.textContent = 'Error building target chord.'; return; }
+            }
+
+            // --- Voicing Type transformation ---
+            // Read selected voicing type and apply transformation to nextChordPcs
+            const selectedVoicingType = (document.getElementById('voicingTypeSelect') || voicingTypeEl) ? ((document.getElementById('voicingTypeSelect') || voicingTypeEl).value || 'default_close') : 'default_close';
+            try {
+                nextChordPcs = applyVoicingTransformation(nextChordPcs, selectedVoicingType, scaleRoot, scaleType) || nextChordPcs;
+            } catch (e) { console.error('Voicing transform failed', e); }
+
+            // If user is not in quartal mode or TBN I mode, clear any stored state
+            if (!(chordTypeVal2 === '3_part_4ths' || chordTypeVal2 === '4_part_4ths' || chordTypeVal2 === 'tbn_1')) {
+                vl_lastQuartalBaseDegree = null;
+                vl_lastQuartalNames = null;
+                vl_lastTBN_BassDegree = null;
+                vl_lastTBN_BassNoteName = null;
+            }
+            
+            // Clear TBN I memory if user is in quartal mode (and vice versa)
+            if (chordTypeVal2 === '3_part_4ths' || chordTypeVal2 === '4_part_4ths') {
+                vl_lastTBN_BassDegree = null;
+                vl_lastTBN_BassNoteName = null;
+            } else if (chordTypeVal2 === 'tbn_1') {
+                vl_lastQuartalBaseDegree = null;
+                vl_lastQuartalNames = null;
+            }
+
+            const startPcs = inputVoices.map(vl_pc).filter(v=>v>=0);
+            const nextSet = new Set(nextChordPcs);
+            const autoFrozenSet = new Set(startPcs.filter(p=> nextSet.has(p)));
+            const combinedFrozenSet = new Set([...autoFrozenSet]);
+            const scalePcs = scale.map(vl_pc);
+
+            const activeInputVoices = inputVoices.filter(v=>v && v.length>0);
+            let mappedPcs = null, finalNames = [];
+            if (chordTypeVal2 === 'tbn_1') {
+                // Special-case: for Cycle 3 we keep the explicit inversion ordering that
+                // was requested (triad 3rd, triad 5th, triad root, bass)
+                if (cycleVal === 3) {
+                    const padded = nextChordPcs.slice();
+                    while (padded.length < 4) padded.push(padded[padded.length - 1] || 0);
+                    mappedPcs = [padded[2], padded[3], padded[1], padded[0]];
+                } else {
+                    // If the user explicitly selected Drop‑2 voicing, the transformation
+                    // already produced the intended voiced ordering. In that case we
+                    // should preserve the transformed ordering and not re-run the
+                    // rule-driven mapper which can reorder voices.
+                    const selectedVoicingType = (document.getElementById('voicingTypeSelect') || voicingTypeEl) ? ((document.getElementById('voicingTypeSelect') || voicingTypeEl).value || 'default_close') : 'default_close';
+                    if (selectedVoicingType === 'drop2') {
+                        mappedPcs = nextChordPcs.slice();
+                    } else {
+                        // Use the rule-driven mapping for TBN I
+                        mappedPcs = vl_mapVoices(activeInputVoices, nextChordPcs, vlDir, vlInterval, combinedFrozenSet, scalePcs, TBN_I_RULES_VL, tbnCurrentBassDegree);
+                    }
+                }
+                finalNames = mappedPcs.map(vl_nameFromPc);
+            } else {
+                // Default behavior for other chord types - apply voice-leading
+                try {
+                    
+                } catch(e){}
+
+// Special-case mapping for 4-part quartals on Cycle 4
+                if (chordTypeVal2 === '4_part_4ths' && cycleVal === 3) {
+                    
+                    
+                    // --- STEP 1: DETECT ROOT FROM INPUTS ---
+                    // Find which diatonic root explains the current notes as a Quartal stack [1, 4, 7, 3]
+                    let detectedBaseIdx = -1;
+                    const currentInputPcs = [];
+                    for(let i=0; i<4; i++) {
+                        if(noteInputs[i] && noteInputs[i].value) {
+                            const pc = vl_pc(noteInputs[i].value);
+                            if(pc >= 0) currentInputPcs.push(pc);
+                        }
+                    }
+
+                    if (scalePcs && scalePcs.length === 7 && currentInputPcs.length > 0) {
+                        for (let d = 0; d < 7; d++) {
+                            // Construct theoretical stack for degree 'd': [1, 4, 7, 3]
+                            const p1 = scalePcs[d];                 
+                            const p4 = scalePcs[(d + 3) % 7];       
+                            const p7 = scalePcs[(d + 6) % 7];       
+                            const p3 = scalePcs[(d + 2) % 7];       
+                            const theoreticalStack = [p1, p4, p7, p3];
+
+                            // Strict check: Are all current notes inside this stack?
+                            const isMatch = currentInputPcs.every(pc => theoreticalStack.includes(pc));
+                            if (isMatch) {
+                                detectedBaseIdx = d;
+                                break; 
+                            }
+                        }
+                    }
+                    if (detectedBaseIdx === -1) detectedBaseIdx = 0; // Fallback
+
+                    // --- STEP 2: BUILD REFERENCE & APPLY MOVES ---
+                    const refRoot = scalePcs[detectedBaseIdx];              // Ref[0]
+                    const ref4th = scalePcs[(detectedBaseIdx + 3) % 7];     // Ref[1]
+                    const ref7th = scalePcs[(detectedBaseIdx + 6) % 7];     // Ref[2]
+                    const ref3rd = scalePcs[(detectedBaseIdx + 2) % 7];     // Ref[3]
+                    
+                    const referenceStack = [refRoot, ref4th, ref7th, ref3rd];
+                    // Cycle 4 Rules: 1->-1, 4->0, 7->-1, 3->0
+                    const moves = [-1, 0, -1, 0]; 
+
+                    mappedPcs = [null, null, null, null]; 
+
+                    for (let i = 0; i < 4; i++) {
+                        const inputNoteVal = noteInputs[i] ? vl_normalize(noteInputs[i].value) : '';
+                        const inputPc = vl_pc(inputNoteVal);
+
+                        if (!inputNoteVal || inputPc < 0) {
+                            mappedPcs[i] = null;
+                            continue;
+                        }
+
+                        // Find role
+                        let roleIndex = -1;
+                        for (let r = 0; r < 4; r++) {
+                            if (((inputPc % 12) + 12) % 12 === ((referenceStack[r] % 12) + 12) % 12) {
+                                roleIndex = r;
+                                break;
+                            }
+                        }
+
+                        if (roleIndex !== -1) {
+                            const move = moves[roleIndex];
+                            const noteScaleIndices = vl_indicesInScale(inputPc, scalePcs);
+                            const currentNoteScaleIdx = noteScaleIndices.length > 0 ? noteScaleIndices[0] : 0;
+                            const targetScaleIdx = ((currentNoteScaleIdx + move) % 7 + 7) % 7;
+                            mappedPcs[i] = scalePcs[targetScaleIdx]; // Assign to EXACT SAME string
+                        } else {
+                            mappedPcs[i] = inputPc; // Keep if not found
+                        }
+                    }
+                    
+                    finalNames = mappedPcs.map(p => (p !== null && p !== undefined) ? vl_nameFromPc(p) : '');
+                    
+                    // Update global state for next click context
+                    vl_lastQuartalBaseDegree = ((detectedBaseIdx + (cycleVal * harmonicDirection)) % 7 + 7) % 7;
+
+                    
+                // --- CYCLE 5 BLOCK (Added Logic) ---
+                } else if (chordTypeVal2 === '4_part_4ths' && cycleVal === 4) {
+                    
+                    
+                    // 1. Detect Root (Stateless)
+                    let detectedBaseIdx = -1;
+                    const currentInputPcs = [];
+                    for(let i=0; i<4; i++) {
+                        if(noteInputs[i] && noteInputs[i].value) {
+                            const pc = vl_pc(noteInputs[i].value);
+                            if(pc >= 0) currentInputPcs.push(pc);
+                        }
+                    }
+
+                    if (scalePcs && scalePcs.length === 7 && currentInputPcs.length > 0) {
+                        for (let d = 0; d < 7; d++) {
+                            // Theoretical Stack for degree 'd': [1, 4, 7, 3]
+                            const p1 = scalePcs[d];                 
+                            const p4 = scalePcs[(d + 3) % 7];       
+                            const p7 = scalePcs[(d + 6) % 7];       
+                            const p3 = scalePcs[(d + 2) % 7];       
+                            const theoreticalStack = [p1, p4, p7, p3];
+
+                            // Check if current notes match this stack
+                            const isMatch = currentInputPcs.every(pc => theoreticalStack.includes(pc));
+                            if (isMatch) {
+                                detectedBaseIdx = d;
+                                break; 
+                            }
+                        }
+                    }
+                    if (detectedBaseIdx === -1) detectedBaseIdx = 0;
+
+                    // 2. Build Reference & Apply Moves for Cycle 5
+                    const refRoot = scalePcs[detectedBaseIdx];              // Ref[0]
+                    const ref4th = scalePcs[(detectedBaseIdx + 3) % 7];     // Ref[1]
+                    const ref7th = scalePcs[(detectedBaseIdx + 6) % 7];     // Ref[2]
+                    const ref3rd = scalePcs[(detectedBaseIdx + 2) % 7];     // Ref[3]
+                    
+                    const referenceStack = [refRoot, ref4th, ref7th, ref3rd];
+                    
+                    // CYCLE 5 RULES:
+                    // 1(Root) -> Common Tone (0)
+                    // 4(4th)  -> Up 2nd (+1)
+                    // 7(7th)  -> Common Tone (0)
+                    // 3(3rd)  -> Up 2nd (+1)
+                    const moves = [0, 1, 0, 1]; 
+
+                    mappedPcs = [null, null, null, null]; 
+
+                    for (let i = 0; i < 4; i++) {
+                        const inputNoteVal = noteInputs[i] ? vl_normalize(noteInputs[i].value) : '';
+                        const inputPc = vl_pc(inputNoteVal);
+
+                        if (!inputNoteVal || inputPc < 0) {
+                            mappedPcs[i] = null;
+                            continue;
+                        }
+
+                        let roleIndex = -1;
+                        for (let r = 0; r < 4; r++) {
+                            if (((inputPc % 12) + 12) % 12 === ((referenceStack[r] % 12) + 12) % 12) {
+                                roleIndex = r;
+                                break;
+                            }
+                        }
+
+                        if (roleIndex !== -1) {
+                            const move = moves[roleIndex];
+                            const noteScaleIndices = vl_indicesInScale(inputPc, scalePcs);
+                            const currentNoteScaleIdx = noteScaleIndices.length > 0 ? noteScaleIndices[0] : 0;
+                            const targetScaleIdx = ((currentNoteScaleIdx + move) % 7 + 7) % 7;
+                            mappedPcs[i] = scalePcs[targetScaleIdx]; 
+                        } else {
+                            mappedPcs[i] = inputPc; 
+                        }
+                    }
+                    
+                    finalNames = mappedPcs.map(p => (p !== null && p !== undefined) ? vl_nameFromPc(p) : '');
+                    vl_lastQuartalBaseDegree = ((detectedBaseIdx + (cycleVal * harmonicDirection)) % 7 + 7) % 7;
+                                              
+} 
+                
+// --- 3-PART QUARTALS (Cycle 4 & 5 Logic) ---
+                else if (chordTypeVal2 === '3_part_4ths' && (cycleVal === 3 || cycleVal === 4)) {
+                    // 1. Detect Root [1, 4, 7]
+                    let detectedBaseIdx = -1;
+                    const currentInputPcs = [];
+                    for(let i=0; i<4; i++) {
+                        if(noteInputs[i] && noteInputs[i].value) {
+                            const pc = vl_pc(noteInputs[i].value);
+                            if(pc >= 0) currentInputPcs.push(pc);
+                        }
+                    }
+
+                    if (scalePcs && scalePcs.length === 7 && currentInputPcs.length > 0) {
+                        for (let d = 0; d < 7; d++) {
+                            const p1 = scalePcs[d];                 
+                            const p4 = scalePcs[(d + 3) % 7];       
+                            const p7 = scalePcs[(d + 6) % 7];       
+                            const theoreticalStack = [p1, p4, p7];
+
+                            const isMatch = currentInputPcs.every(pc => theoreticalStack.includes(pc));
+                            if (isMatch) {
+                                detectedBaseIdx = d;
+                                break; 
+                            }
+                        }
+                    }
+                    if (detectedBaseIdx === -1) detectedBaseIdx = 0;
+
+                    // 2. Build Reference Stack
+                    const refRoot = scalePcs[detectedBaseIdx];
+                    const ref4th = scalePcs[(detectedBaseIdx + 3) % 7];
+                    const ref7th = scalePcs[(detectedBaseIdx + 6) % 7];
+                    const referenceStack = [refRoot, ref4th, ref7th];
+                    
+                    // 3. Determine Moves based on Cycle
+                    let moves = [0, 0, 0];
+                    
+                    if (cycleVal === 3) {
+                         // CYCLE 4 RULES:
+                         // Root(1)-> -1, 4th(4)-> -1, 7th(7)-> -3
+                         moves = [-1, -1, -3];
+                         try { console.log('DEBUG: Cycle 4 3-part logic activated'); } catch(e){}
+                    } else {
+                         // CYCLE 5 RULES (Active Motion):
+                         // Root(1)-> +3 (Up 4th), 4th(4)-> +1 (Up 2nd), 7th(7)-> +1 (Up 2nd)
+                         moves = [3, 1, 1];
+                         try { console.log('DEBUG: Cycle 5 3-part logic activated'); } catch(e){}
+                    }
+
+                    mappedPcs = [null, null, null, null]; 
+
+                    for (let i = 0; i < 4; i++) {
+                        const inputNoteVal = noteInputs[i] ? vl_normalize(noteInputs[i].value) : '';
+                        const inputPc = vl_pc(inputNoteVal);
+
+                        if (!inputNoteVal || inputPc < 0) {
+                            mappedPcs[i] = null;
+                            continue;
+                        }
+
+                        let roleIndex = -1;
+                        for (let r = 0; r < 3; r++) {
+                            if (((inputPc % 12) + 12) % 12 === ((referenceStack[r] % 12) + 12) % 12) {
+                                roleIndex = r;
+                                break;
+                            }
+                        }
+
+                        if (roleIndex !== -1) {
+                            const move = moves[roleIndex];
+                            const noteScaleIndices = vl_indicesInScale(inputPc, scalePcs);
+                            const currentNoteScaleIdx = noteScaleIndices.length > 0 ? noteScaleIndices[0] : 0;
+                            const targetScaleIdx = ((currentNoteScaleIdx + move) % 7 + 7) % 7;
+                            mappedPcs[i] = scalePcs[targetScaleIdx]; 
+                        } else {
+                            mappedPcs[i] = inputPc;
+                        }
+                    }
+                    
+                    finalNames = mappedPcs.map(p => (p !== null && p !== undefined) ? vl_nameFromPc(p) : '');
+                    vl_lastQuartalBaseDegree = ((detectedBaseIdx + (cycleVal * harmonicDirection)) % 7 + 7) % 7;
+                                                          
+                } else {
+                    mappedPcs = vl_mapVoices(activeInputVoices, nextChordPcs, vlDir, vlInterval, combinedFrozenSet, scalePcs, null);
+                    
+                    finalNames = mappedPcs.map(vl_nameFromPc);
+                    
+                }
+            }
+
+// For quartal flows:
+            if (chordTypeVal2 === '3_part_4ths' || chordTypeVal2 === '4_part_4ths') {
+                if (finalNames && finalNames.length) {
+                    // For Cycle 4, we calculated a STRICT order upstream.
+                    // For Cycle 2, standard mapping is usually fine.
+                    // In ALL cases here, we simply want to display what we calculated 
+                    // without trying to "fix" the bass note order.
+                    
+                    let arranged = [...finalNames];
+
+                    // Fill gaps if any (standard safety fallback)
+                    if (quartalNamesOutside && quartalNamesOutside.length) {
+                        quartalNamesOutside.forEach(q => {
+                            if (!arranged.includes(q)) arranged.push(q);
+                        });
+                    }
+
+                    // Pad to 4 strings
+                    const padded = [
+                        arranged[0]||'', 
+                        arranged[1]||'', 
+                        arranged[2]||'', 
+                        arranged[3]||''
+                    ];
+                    setNoteInputsFromArray(padded);
+                } else if (quartalNamesOutside && quartalNamesOutside.length) {
+                    const padded = [quartalNamesOutside[0]||'', quartalNamesOutside[1]||'', quartalNamesOutside[2]||'', quartalNamesOutside[3]||''];
+                    setNoteInputsFromArray(padded);
+                } else {
+                    setNoteInputsFromArray(finalNames);
+                }
+                        } else if (chordTypeVal2 === 'tbn_1') {
+                // For TBN I: finalNames is already correctly ordered [bass, note2, note3, note4]
+                // from the special voice-leading logic above
+                const padded = [
+                    finalNames[0] || '',
+                    finalNames[1] || '',
+                    finalNames[2] || '',
+                    finalNames[3] || ''
+                ];
+                setNoteInputsFromArray(padded);
+            } else {
+                setNoteInputsFromArray(finalNames);
+            }
+
+            allVoicings = findAndFilterVoicingsStrict();
+            currentVoicingIndex = 0;
+
+            // Update voicing info with prediction details
+            updateVoicingInfo({
+                title: `Predicted: ${chordIdent.root} → degree ${targetDegree}`,
+                targetDegree: `${targetDegree} (${scaleType})`,
+                targetChordPcs: nextChordPcs,
+                autoFrozen: Array.from(combinedFrozenSet),
+                predictedVoicing: finalNames,
+                currentVoicing: allVoicings && allVoicings.length ? allVoicings[0] : null
+            });
+                displayCurrentVoicing();
+        }
+
+        // Next: perform prediction and push the current inputs onto the history stack so we can undo
+        if(predictNextBtn) predictNextBtn.addEventListener('click', ()=> runPredict(1));
+
+function restorePreviousInputs() {
+            if(predictHistory.length === 0) {
+                predictPrevBtn.disabled = true;
+                optionNumberElement.textContent = 'No previous chord in history';
+                return;
+            }
+            const last = predictHistory.pop();
+            setNoteInputsFromArray(last);
+            
+            // --- תיקון חדש: סנכרון הזיכרון עם הצעד אחורה ---
+            const chordTypeVal = (document.getElementById('chordTypeSelect') || document.getElementById('chordType')).value;
+            if (chordTypeVal === 'tbn_1' || chordTypeVal === 'tbn_2') {
+                // שחזר את תו הבס מהאינפוט ששוחזר (מניחים שהוא ב-Note1 ב-TBN)
+                const restoredBass = vl_normalize(last[0]);
+                if (restoredBass) {
+                    vl_lastTBN_BassNoteName = restoredBass;
+                    // עדכן גם את האינדקס אם צריך
+                    const scale = vl_getScale(scaleRootEl.value, scaleTypeEl.value);
+                    if (scale) {
+                        const pc = vl_pc(restoredBass);
+                        vl_lastTBN_BassDegree = scale.map(vl_pc).indexOf(pc);
+                    }
+                    
+                }
+            }
+            // ------------------------------------------------
+
+            allVoicings = findAndFilterVoicingsStrict();
+            currentVoicingIndex = 0;
+            displayCurrentVoicing();
+            predictPrevBtn.disabled = predictHistory.length === 0;
+            optionNumberElement.textContent = 'Restored previous chord';
+        }
+        if(predictPrevBtn) {
+            predictPrevBtn.addEventListener('click', restorePreviousInputs);
+            // initially disabled until there's history
+            predictPrevBtn.disabled = true;
+        }
+        function generateInitialVoicing() {
+            try {
+                const scaleRoot = scaleRootEl.value || 'C';
+                const scaleType = (scaleTypeEl.value || 'major').toLowerCase();
+                // קרא את סוג האקורד שנבחר
+                const chordTypeVal = (document.getElementById('chordTypeSelect') || document.getElementById('chordType')) ? ((document.getElementById('chordTypeSelect') || document.getElementById('chordType')).value || 'triadic_7th') : 'triadic_7th';
+
+                let initialChordPcs = null;
+                let generatedNames = [];
+
+                // נקה את כל הזיכרון של המהלכים הקודמים
+                vl_lastQuartalBaseDegree = null;
+                vl_lastQuartalNames = null;
+                vl_lastTBN_BassDegree = null;
+                vl_lastTBN_BassNoteName = null;
+
+                // לוגיקה בהתאם לסוג האקורד שנבחר
+                if (chordTypeVal === '3_part_4ths' || chordTypeVal === '4_part_4ths') {
+                    // יצירת אקורד קוורטלי על שורש הסולם (דרגה 1)
+                    const scaleSpec = `${scaleRoot} ${scaleType}`;
+                    const count = (chordTypeVal === '3_part_4ths') ? 3 : 4;
+                    generatedNames = buildQuartalChord(scaleRoot, scaleSpec, count);
+                    initialChordPcs = generatedNames.map(n => vl_pc(n)).filter(v => v >= 0);
+                    
+                    // אפס את הזיכרון הקוורטלי לדרגה הראשונה
+                    vl_lastQuartalBaseDegree = 0; // דרגה 1 (אינדקס 0)
+                    vl_lastQuartalNames = generatedNames.slice();
+                    
+                } else if (chordTypeVal === 'tbn_1') {
+                    // יצירת אקורד TBN I על שורש הסולם (דרגה 1)
+                    initialChordPcs = buildTBN_I_Chord(scaleRoot, scaleRoot, scaleType);
+                    generatedNames = initialChordPcs.map(vl_nameFromPc);
+
+                    // אפס את הזיכרון של TBN לדרגה הראשונה
+                    vl_lastTBN_BassDegree = 0; // דרגה 1 (אינדקס 0)
+                    vl_lastTBN_BassNoteName = vl_normalize(scaleRoot);
+
+                } else {
+                    // ברירת מחדל: אקורדים דיאטוניים (Triadic/7th)
+                    // נייצר אקורד מרובע (7th) על הדרגה הראשונה
+                    initialChordPcs = vl_diatonicChordPcs(scaleRoot, scaleType, 1, '7th'); // דרגה 1
+                    generatedNames = initialChordPcs.map(vl_nameFromPc);
+                }
+
+                if (!initialChordPcs || initialChordPcs.length === 0) {
+                    optionNumberElement.textContent = 'Error generating initial chord.';
+                    return;
+                }
+
+                // החל טרנספורמציית Voicing (למשל Drop 3) אם נבחרה
+                const selectedVoicingType = (document.getElementById('voicingTypeSelect') || voicingTypeEl) ? ((document.getElementById('voicingTypeSelect') || voicingTypeEl).value || 'default_close') : 'default_close';
+                let transformedPcs = initialChordPcs;
+                try {
+                    transformedPcs = applyVoicingTransformation(initialChordPcs, selectedVoicingType, scaleRoot, scaleType) || initialChordPcs;
+                } catch (e) { console.error('Voicing transform failed', e); }
+
+                const finalNames = transformedPcs.map(vl_nameFromPc);
+
+                // אכלס את תיבות הטקסט
+                setNoteInputsFromArray(finalNames);
+
+                // הרץ חיפוש קפדני (Strict Search) כדי למצוא ולהציג את ה-Voicing
+                allVoicings = findAndFilterVoicingsStrict();
+                currentVoicingIndex = 0;
+                displayCurrentVoicing();
+
+                // עדכן את תיבת המידע
+                const chordId = vl_identifyChord(finalNames) || { root: scaleRoot, type: chordTypeVal.replace('_', ' ') };
+                const title = chordId ? `Generated: ${chordId.root} ${chordId.type}` : 'Generated Voicing';
+                updateVoicingInfo({
+                    title: title,
+                    targetChordPcs: transformedPcs,
+                    predictedVoicing: finalNames,
+                    currentVoicing: allVoicings.length ? allVoicings[0] : null
+                });
+                
+                // יצירת אקורד חדש מאפסת את היסטוריית ה-"אחורה"
+                predictHistory.length = 0; 
+                if (predictPrevBtn) predictPrevBtn.disabled = true;
+
+            } catch (err) {
+                console.error('Error in generateInitialVoicing:', err);
+                optionNumberElement.textContent = `Error: ${err.message}`;
+            }
+        }
+
+        // normalize note inputs on blur
+        noteInputs.forEach(el=>{
+            if(!el) return;
+            el.addEventListener('blur', ()=> { el.value = vl_normalize(el.value); });
+            el.addEventListener('keydown', (e)=> { if(e.key==='Enter'){ el.blur(); e.preventDefault(); } });
+        });
+
+        // mobile placement of prev/next
+        function adjustCvNavForMobile(){
+            const cvNav = document.querySelector('.cv-nav');
+            if(window.innerWidth <= 768){
+                cvNav.style.display = 'flex';
+                const predictPrev = document.getElementById('predictPrev');
+                const predictNext = document.getElementById('predictNext');
+                predictPrev.style.display = '';
+                predictNext.style.display = '';
+                if(cvNav && !cvNav.contains(predictPrev)){ cvNav.appendChild(predictPrev); }
+                if(cvNav && !cvNav.contains(predictNext)){ cvNav.appendChild(predictNext); }
+            } else {
+                const currentVoicing = document.querySelector('.current-voicing');
+                const predictPrev = document.getElementById('predictPrev');
+                const predictNext = document.getElementById('predictNext');
+                const cvNav = document.querySelector('.cv-nav');
+                if(currentVoicing && !currentVoicing.contains(predictPrev)){ currentVoicing.insertBefore(predictPrev, currentVoicing.firstChild); }
+                if(currentVoicing && !currentVoicing.contains(predictNext)){ currentVoicing.appendChild(predictNext); }
+                if(cvNav) cvNav.style.display = 'none';
+            }
+        }
+        window.addEventListener('resize', adjustCvNavForMobile);
+        adjustCvNavForMobile();
+
+        // Help / Instructions modal logic
+        const helpButton = document.getElementById('help-button');
+        const helpOverlay = document.getElementById('help-modal-overlay');
+        const helpContent = document.getElementById('help-modal-content');
+        const helpClose = helpContent ? helpContent.querySelector('.help-close') : null;
+        const contactButton = document.getElementById('contact-button');
+        const contactOverlay = document.getElementById('contact-modal-overlay');
+        const contactContent = document.getElementById('contact-modal-content');
+        const contactClose = contactContent ? contactContent.querySelector('.contact-close') : null;
+
+        function openHelpModal(){
+            if(!helpOverlay) return;
+            helpOverlay.classList.add('open');
+            helpOverlay.setAttribute('aria-hidden','false');
+            // trap focus briefly (move to dialog)
+            if(helpContent) helpContent.focus();
+            // Mobile UX: show inline label and stop pulse after first open
+            if(helpButton){ helpButton.classList.add('open-label'); helpButton.classList.remove('pulse'); }
+        }
+        function closeHelpModal(){
+            if(!helpOverlay) return;
+            helpOverlay.classList.remove('open');
+            helpOverlay.setAttribute('aria-hidden','true');
+            if(helpButton) helpButton.focus();
+            if(helpButton) helpButton.classList.remove('open-label');
+        }
+
+        if(helpButton) helpButton.addEventListener('click', ()=>{
+            if(helpOverlay && helpOverlay.classList.contains('open')) closeHelpModal(); else openHelpModal();
+        });
+        if(helpClose) helpClose.addEventListener('click', closeHelpModal);
+        if(helpOverlay) helpOverlay.addEventListener('click', (ev)=>{ if(ev.target === helpOverlay) closeHelpModal(); });
+
+        // Contact modal handlers (mirror Help modal)
+        function openContactModal(){
+            if(!contactOverlay) return;
+            contactOverlay.classList.add('open');
+            contactOverlay.setAttribute('aria-hidden','false');
+            if(contactContent) contactContent.focus();
+            if(contactButton){ contactButton.classList.add('open-label'); }
+        }
+        function closeContactModal(){
+            if(!contactOverlay) return;
+            contactOverlay.classList.remove('open');
+            contactOverlay.setAttribute('aria-hidden','true');
+            if(contactButton) contactButton.focus();
+            if(contactButton) contactButton.classList.remove('open-label');
+        }
+
+        if(contactButton) contactButton.addEventListener('click', ()=>{
+            if(contactOverlay && contactOverlay.classList.contains('open')) closeContactModal(); else openContactModal();
+        });
+        if(contactClose) contactClose.addEventListener('click', closeContactModal);
+        if(contactOverlay) contactOverlay.addEventListener('click', (ev)=>{ if(ev.target === contactOverlay) closeContactModal(); });
+
+        // close on Escape - close modals and mobile menu if open
+        window.addEventListener('keydown', (ev)=>{ if(ev.key === 'Escape'){ closeHelpModal(); closeContactModal(); closeMobileMenu && closeMobileMenu(); } });
+
+        // Mobile menu behavior: open/close and wire to modals
+        const mobileHamburger = document.getElementById('mobile-hamburger');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileBackdrop = document.getElementById('mobile-menu-backdrop');
+        const mobileHelpItem = document.getElementById('mobile-help-item');
+        const mobileContactItem = document.getElementById('mobile-contact-item');
+
+        function openMobileMenu(){ if(!mobileMenu) return; mobileMenu.classList.add('open'); mobileMenu.setAttribute('aria-hidden','false'); if(mobileBackdrop) mobileBackdrop.classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeMobileMenu(){ if(!mobileMenu) return; mobileMenu.classList.remove('open'); mobileMenu.setAttribute('aria-hidden','true'); if(mobileBackdrop) mobileBackdrop.classList.remove('open'); document.body.style.overflow = ''; if(mobileHamburger) mobileHamburger.focus(); }
+
+        if(mobileHamburger) mobileHamburger.addEventListener('click', ()=>{ if(mobileMenu && mobileMenu.classList.contains('open')) closeMobileMenu(); else openMobileMenu(); });
+        if(mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileMenu);
+        const mobileMenuCloseBtn = mobileMenu ? mobileMenu.querySelector('.menu-close') : null;
+        if(mobileMenuCloseBtn) mobileMenuCloseBtn.addEventListener('click', closeMobileMenu);
+        if(mobileHelpItem) mobileHelpItem.addEventListener('click', ()=>{ closeMobileMenu(); openHelpModal(); });
+        if(mobileContactItem) mobileContactItem.addEventListener('click', ()=>{ closeMobileMenu(); openContactModal(); });
+
+        // Initialize guitar sampler
+        playVoicingButton.disabled = true;
+        playVoicingButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>&nbsp;&nbsp;Loading Sounds...';
+        setupGuitarSampler(() => {
+            playVoicingButton.disabled = false;
+            playVoicingButton.innerHTML = '<i class="fa-solid fa-play"></i>&nbsp;&nbsp;Play Chord';
+        });
+
+        optionNumberElement.textContent = 'Ready. Use Strict Search or Next Chord.';
+    });
+    </script>
+</body>
+
+
+</html>
+
