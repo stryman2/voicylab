@@ -1020,9 +1020,14 @@ function closeContactModal(){if(!contactOverlay)return;contactOverlay.classList.
 if(contactButton)contactButton.addEventListener('click',()=>{if(contactOverlay&&contactOverlay.classList.contains('open'))closeContactModal();else openContactModal()});if(contactClose)contactClose.addEventListener('click',closeContactModal);if(contactOverlay)contactOverlay.addEventListener('click',(ev)=>{if(ev.target===contactOverlay)closeContactModal();});window.addEventListener('keydown',(ev)=>{if(ev.key==='Escape'){closeHelpModal();closeContactModal();closeMobileMenu&&closeMobileMenu()}});const mobileHamburger=document.getElementById('mobile-hamburger');const mobileMenu=document.getElementById('mobile-menu');const mobileBackdrop=document.getElementById('mobile-menu-backdrop');const mobileHelpItem=document.getElementById('mobile-help-item');const mobileContactItem=document.getElementById('mobile-contact-item');function openMobileMenu(){if(!mobileMenu)return;mobileMenu.classList.add('open');mobileMenu.setAttribute('aria-hidden','false');if(mobileBackdrop)mobileBackdrop.classList.add('open');document.body.style.overflow='hidden'}
 function closeMobileMenu(){if(!mobileMenu)return;mobileMenu.classList.remove('open');mobileMenu.setAttribute('aria-hidden','true');if(mobileBackdrop)mobileBackdrop.classList.remove('open');document.body.style.overflow='';if(mobileHamburger)mobileHamburger.focus();}
 if(mobileHamburger)mobileHamburger.addEventListener('click',()=>{if(mobileMenu&&mobileMenu.classList.contains('open'))closeMobileMenu();else openMobileMenu()});if(mobileBackdrop)mobileBackdrop.addEventListener('click',closeMobileMenu);const mobileMenuCloseBtn=mobileMenu?mobileMenu.querySelector('.menu-close'):null;if(mobileMenuCloseBtn)mobileMenuCloseBtn.addEventListener('click',closeMobileMenu);if(mobileHelpItem)mobileHelpItem.addEventListener('click',()=>{closeMobileMenu();openHelpModal()});if(mobileContactItem)mobileContactItem.addEventListener('click',()=>{closeMobileMenu();openContactModal()});playVoicingButton.disabled=!0;playVoicingButton.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i>&nbsp;&nbsp;Loading Sounds...';setupGuitarSampler(()=>{playVoicingButton.disabled=!1;playVoicingButton.innerHTML='<i class="fa-solid fa-play"></i>&nbsp;&nbsp;Play Chord'});optionNumberElement.textContent='Ready. Use Strict Search or Next Chord.'});</script>
+
+<!-- Vercel Web Analytics -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+
 </body>
-
-
 </html>
 
 
