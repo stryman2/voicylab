@@ -6,31 +6,72 @@
   <title>VoicyLab – Mick Goodrick Voicing Engine</title>
   <style>
     body,html{margin:0;height:100%;font-family:system-ui,sans-serif;background:#0d0d0d;color:#eee;display:flex;align-items:center;justify-content:center;}
-    .splash{max-width:520px;text-align:center;padding:2rem;}
+    
+    .splash{max-width:520px;text-align:center;padding:2rem;width: 100%;}
+    
     h1{font-size:2.2rem;margin:0 0 1rem;}
+    
     p{font-size:1.1rem;line-height:1.5;margin:1.2rem 0;}
-    .buttons{margin:2rem 0;}
-    button{padding:0.9rem 2rem;margin:0.5rem;font-size:1.1rem;border:none;border-radius:8px;cursor:pointer;}
-    .pay{background:#00d4aa;color:black;font-weight:600;}
+    
+    /* התיקון המרכזי נמצא כאן - מסדר את הכפתורים אחד מתחת לשני וממרכז אותם */
+    .buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px; /* רווח בין הכפתורים */
+        margin: 2rem 0;
+    }
+
+    button {
+        padding:0.8rem 2rem;
+        font-size:1.1rem;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+        transition: transform 0.1s;
+        /* הגבלת רוחב כדי שיראו אחידים ויפים */
+        min-width: 250px; 
+        max-width: 100%;
+    }
+    
+    button:active { transform: scale(0.98); }
+
+    .pay {
+        background:#00d4aa;
+        color:black;
+        /* הגדרות פלקס פנימיות לטקסט בתוך הכפתור */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+    }
+    
     .demo{background:transparent;border:1px solid #555;color:#aaa;}
+    .demo:hover {border-color: #888; color: #ccc;}
+
     .fineprint{font-size:0.85rem;color:#777;margin-top:3rem;}
     .video-link{margin-top:2.5rem;cursor:pointer;color:#00d4aa;font-size:1rem;}
     .video-link:hover{text-decoration:underline;}
 
-    /* מודאל וידאו – נקי ופשוט */
+    /* מודאל וידאו */
     .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;z-index:999;}
     .modal-content{position:relative;max-width:900px;width:90%;background:#000;padding:20px;border-radius:12px;}
     .close{position:absolute;top:-10px;right:10px;font-size:2.5rem;color:#fff;cursor:pointer;}
   </style>
 </head>
-<body> 
+<body>
 
 <div class="splash">
   <h1>VoicyLab</h1>
   <p>Mick Goodrick Voicing Engine<br>Triads • 7th chords • TBN I • 3-part & 4-part quartals<br>with real voice-leading on the fretboard</p>
   
   <div class="buttons">
-    <button class="pay" onclick="pay()">Lifetime Access – $39</button><br>
+    <button class="pay" onclick="pay()">
+        <span style="font-size: 1.1rem; font-weight: 700;">Early Adopter License</span>
+        <span style="font-size: 0.85rem; opacity: 0.8; font-weight: 400;">(Get full access forever)</span>
+    </button>
+
     <button class="demo" onclick="enter()">Continue to beta</button>
   </div>
 
@@ -45,7 +86,6 @@
   </p>
 </div>
 
-<!-- מודאל הווידאו – שנה רק את הקישור של ה-youtube -->
 <div id="videoModal" class="modal" onclick="this.style.display='none'">
   <div class="modal-content" onclick="event.stopPropagation()">
     <span class="close" onclick="document.getElementById('videoModal').style.display='none'">x</span>
@@ -57,15 +97,12 @@
 <script>
   function pay() {
     window.location.href = 'https://voicylab.lemonsqueezy.com/buy/6c3a697d-87f0-4696-ade6-8a7e7945ddf6';
-
   }
-function enter() {
+  
+  function enter() {
     window.location.href = 'app.html';
   }
-
 </script>
 
-</script>
 </body>
-
 </html>
