@@ -1,0 +1,1185 @@
+<!-- copyright 2025 Alon Segal -->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>VoicyLab</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include Tone.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        /* Visual upgrade: modern, premium look with subtle motion, gradients and improved spacing */
+
+        :root{
+            --bg-outer: linear-gradient(180deg,#0f1720 0%, #161923 40%, #0b0f12 100%);
+            --panel-bg: rgba(255,255,255,0.04);
+            --glass: rgba(255,255,255,0.03);
+            --accent-1: #6EE7B7;
+            --accent-2: #38BDF8;
+            --accent-3: #9B7CFF;
+            --muted: #9aa4b2;
+            --card-bg: #0f1620;
+            --text-on-dark: #E6EEF6;
+            --note-white: #ffffff;
+            --note-shadow: rgba(12,18,24,0.35);
+            --danger: #ef4444;
+            --glass-border: rgba(255,255,255,0.06);
+            --glass-glow: 0 6px 30px rgba(60,120,255,0.05);
+            --transition: 220ms cubic-bezier(.2,.9,.2,1);
+        }
+
+        html,body{
+            min-height: 100%;
+            margin:0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            background-image: url('https://raw.githubusercontent.com/stryman2/voicylab/refs/heads/main/public/vintage-guitar.webp');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color:var(--text-on-dark);
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+            padding-top: 10px;
+            padding-left: 28px;
+            padding-right: 28px;
+            padding-bottom: 28px;
+        }
+
+        .container{
+            width:100%;
+            max-width:1160px;
+            border-radius:18px;
+            padding:26px;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 10px 40px rgba(3,7,14,0.6), 0 1px 0 rgba(255,255,255,0.02) inset;
+            border: 1px solid rgba(255,255,255,0.03);
+            position:relative;
+            overflow:visible;
+        }
+
+        /* theme toggle removed */
+
+        /* Header action buttons (Help + Contact) container */
+        .header-actions{ position:absolute; top:18px; left:18px; display:flex; gap:10px; z-index:20; }
+
+        /* Help + Contact buttons: identical appearance */
+        #help-button, #contact-button{
+            width:40px; height:40px; border-radius:10px; border:0;
+            background:linear-gradient(180deg,#2b2f36,#1b1f24);
+            color:var(--text-on-dark);
+            display:inline-grid; place-items:center; cursor:pointer; font-size:16px;
+            transition:all var(--transition); box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+        }
+        #help-button:hover, #contact-button:hover{ transform:translateY(-3px); }
+
+        /* Help modal overlay + content */
+        #help-modal-overlay{
+            position:fixed;
+            inset:0;
+            background:rgba(2,6,12,0.6);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            opacity:0;
+            visibility:hidden;
+            transition:opacity 220ms ease, visibility 220ms ease;
+            z-index:9999;
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+        }
+        #help-modal-overlay.open{ opacity:1; visibility:visible; }
+
+        #help-modal-content{
+            position:relative;
+            width: min(760px, 92%);
+            max-height: 86vh;
+            overflow:auto;
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+            border:1px solid rgba(255,255,255,0.06);
+            padding:20px 22px;
+            border-radius:14px;
+            color:var(--text-on-dark);
+            box-shadow: 0 20px 60px rgba(2,6,18,0.6);
+            transform: scale(0.98);
+            transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease;
+            opacity:0;
+        }
+        #help-modal-overlay.open #help-modal-content{ transform: scale(1); opacity:1; }
+
+        /* Contact modal shares same styles as help modal */
+        #contact-modal-overlay{
+            position:fixed; inset:0; background:rgba(2,6,12,0.6);
+            display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden;
+            transition:opacity 220ms ease, visibility 220ms ease; z-index:9999;
+            -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+        }
+        #contact-modal-overlay.open{ opacity:1; visibility:visible; }
+
+        #contact-modal-content{
+            position:relative; width: min(760px, 92%); max-height: 86vh; overflow:auto;
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+            border:1px solid rgba(255,255,255,0.06); padding:20px 22px; border-radius:14px; color:var(--text-on-dark);
+            box-shadow: 0 20px 60px rgba(2,6,18,0.6); transform: scale(0.98); transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; opacity:0;
+        }
+        #contact-modal-overlay.open #contact-modal-content{ transform: scale(1); opacity:1; }
+
+        .contact-close{ position:absolute; top:12px; right:14px; background:transparent; border:0; color:var(--muted); font-size:22px; cursor:pointer; }
+        .contact-link{ color:var(--accent-2); font-weight:800; text-decoration:none; }
+
+        .help-close{
+            position:absolute;
+            top:12px;
+            right:14px;
+            background:transparent;
+            border:0;
+            color:var(--muted);
+            font-size:22px;
+            cursor:pointer;
+        }
+        #help-modal-content h2{ margin-top:6px; margin-bottom:6px; }
+        #help-modal-content p{ color:var(--muted); line-height:1.5; }
+        #help-modal-content ul{ margin:8px 0 12px 18px; color:var(--muted); line-height:1.4; }
+
+        /* Mobile: transform help button into a floating action button (FAB) on the bottom-right
+           This avoids overlapping the logo and gives a clear touch target. A small inline label
+           appears while the modal is open or on hover/focus. */
+        @media (max-width: 768px){
+            /* On small screens we keep header actions in the top-left for simplicity. */
+            /* subtle pulse to draw attention on first use */
+            @keyframes help-pulse { 0% { box-shadow: 0 6px 14px rgba(0,0,0,0.3); transform: scale(1); } 50% { box-shadow: 0 18px 38px rgba(56,189,248,0.08); transform: scale(1.03); } 100% { box-shadow: 0 6px 14px rgba(0,0,0,0.3); transform: scale(1); } }
+            #help-button.pulse { animation: help-pulse 2200ms ease-in-out infinite; }
+        }
+
+        /* header logo */
+        .logo-container{ display:flex; align-items:center; gap:2px; justify-content:center; margin-bottom:18px; }
+        .logo-title{ font-weight:450; font-size:28px; color:var(--text-on-dark); letter-spacing:0.0px; }
+        .logo-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+        /* Controls row */
+        .controls-row{
+            display:flex;
+            gap:18px;
+            align-items:center;
+            justify-content:center;
+            flex-wrap:wrap;
+            padding:12px;
+            margin-bottom:18px;
+            border-radius:12px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+            border:1px solid var(--glass-border);
+            box-shadow: var(--glass-glow);
+        }
+
+          /* Make vl-panel a vertical stack of two rows so the top controls are always in two rows
+              (first row: Scale Root, Scale Type, Chord Type; second row: Cycle, VL Interval, Direction)
+              We introduce a helper class .vl-row for each horizontal row. This enforces two permanent
+              rows on desktop while still allowing inner wrapping on very small screens if necessary. */
+          .vl-panel{ display:flex; gap:12px; align-items:center; justify-content:center; flex-direction:column; }
+          .vl-row{ display:flex; gap:14px; align-items:center; justify-content:center; flex-wrap:wrap; }
+        .vl-field{ display:flex; flex-direction:column; align-items:center; gap:8px; min-width:110px; }
+        .vl-field label{ font-size:12px; color:var(--muted); font-weight:700; }
+        .vl-field select, .vl-field input[type="number"]{
+            border-radius:10px;
+            border:0;
+            padding:10px 12px;
+            background:linear-gradient(180deg,#ffffff,#f3f5f7);
+            color:#1b2430;
+            font-weight:700;
+            letter-spacing:0.6px;
+            box-shadow: 0 6px 14px rgba(2,6,10,0.08);
+            min-width:110px;
+            text-align:center;
+        }
+
+        .vl-direction{ display:flex; gap:8px; align-items:center; }
+        .vl-btn{
+            width:40px;height:40px;border-radius:9px;border:0;
+            background:linear-gradient(180deg,#2b2f36,#1b1f24);
+            color:var(--text-on-dark);
+            display:inline-grid;place-items:center;
+            cursor:pointer;font-size:14px;font-weight:800;
+            transition:all var(--transition);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+        }
+        .vl-btn:hover{ transform:translateY(-3px); }
+        .vl-btn.active{
+            background: linear-gradient(90deg,var(--accent-1), var(--accent-2));
+            color:#06202b;
+            box-shadow: 0 10px 30px rgba(56,189,248,0.12), 0 4px 0 rgba(0,0,0,0.25);
+        }
+
+        /* Current Voicing - premium cards style */
+        .current-voicing{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:16px;
+            margin:10px 0 18px 0;
+            flex-wrap:nowrap;
+        }
+
+        .note-square{
+            width:76px;height:76px;
+            min-width:76px;
+            border-radius:14px;
+            background:var(--note-white);
+            color:#0b1220;
+            font-weight:900;
+            font-size:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            box-shadow: 0 12px 30px var(--note-shadow), 0 2px 0 rgba(0,0,0,0.12);
+            border: 1px solid rgba(6,10,16,0.06);
+            transition: transform var(--transition), box-shadow var(--transition);
+            outline:none;
+            text-align:center;
+            font-family: inherit; /* keep same font */
+        }
+        .note-square::placeholder{ color:#9aa4b2; font-weight:800; }
+
+        .note-square:focus{ transform:translateY(-6px) scale(1.02); box-shadow: 0 18px 40px rgba(2,6,18,0.35); }
+
+        .side-btn{
+            height:76px;
+            min-width:110px;
+            border-radius:14px;
+            border:0;
+            cursor:pointer;
+            font-weight:800;
+            font-size:15px;
+            color:#fff;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            letter-spacing:0.6px;
+            transition:all var(--transition);
+            box-shadow: 0 12px 30px rgba(2,6,18,0.45);
+        }
+        .side-btn.prev-btn{
+            background: linear-gradient(180deg,#3f8fb0,#165a78);
+        }
+        .side-btn.next-btn{
+            background: linear-gradient(180deg,#00b37a,#0e7b5e);
+        }
+        .side-btn:hover{ transform:translateY(-4px); filter:brightness(1.03); }
+        .generate-voicing-container {
+            display: flex;
+            justify-content: center;
+            /* מושך את הכפתור קרוב יותר לתיבות התווים */
+            margin: -8px 0 18px 0; 
+        }
+        
+        .side-btn.generate-btn {
+            /* שימוש בצבע הדגשה 3 */
+            background: linear-gradient(180deg, var(--accent-3), #6b52f9);
+            color: #fff;
+            min-width: 240px; /* רוחב נדיב */
+            height: 34px; /* גובה כמו כפתורי הפעולה */
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 26px rgba(107, 82, 249, 0.25);
+        }
+
+        /* התאמה למובייל */
+        @media (max-width: 768px){
+            .generate-voicing-container {
+                width: 100%;
+                margin-top: 0px; /* איפוס מרווח במובייל */
+            }
+            .side-btn.generate-btn {
+                width: 100%;
+                height: 48px;
+            }
+        }
+
+        /* small helper: container for mobile repositioning */
+        .cv-nav{ display:none; gap:10px; }
+
+        /* Inputs + controls area */
+        .input-section{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-bottom:18px; align-items:center; }
+
+        .button-container{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+        .button-container button{
+            height:52px; padding:0 18px; border-radius:12px; border:0; cursor:pointer;
+            font-weight:800; letter-spacing:0.4px; box-shadow: 0 10px 26px rgba(2,6,18,0.45);
+            transition:all var(--transition);
+        }
+        #find-voicing-strict{ background: linear-gradient(90deg,var(--accent-1), var(--accent-2)); color:#042427; }
+        #find-voicing-flexible{ background: linear-gradient(90deg,var(--accent-2), var(--accent-3)); color:#061222; }
+        /* Dark grey action buttons (darker than the previous neutral grey) */
+        #play-voicing-button{
+            background: linear-gradient(180deg,#374151,#111217);
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        #play-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        #store-voicing-button{
+            background: linear-gradient(180deg,#374151,#111217);
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        #store-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        /* Ensure Play / Store buttons use black text for contrast */
+        #play-voicing-button,
+        #store-voicing-button {
+            color: #cccccc !important;
+            text-shadow: none !important; /* remove any pale text-shadow that reduces contrast */
+        }
+
+        /* Ensure the icon inside the button is also black */
+        #play-voicing-button i,
+        #store-voicing-button i {
+            color: #f8f7f7 !important;
+        }
+
+        .button-container button:hover{ transform:translateY(-4px); filter:brightness(1.04); }
+        /* Make Generate look like the other action buttons */
+        #generate-voicing-button{ background: linear-gradient(180deg,#374151,#111217); color:#f8f8f8; border: 1px solid rgba(255,255,255,0.04); }
+        #generate-voicing-button:hover{ background: linear-gradient(180deg,#3f4953,#15161a); }
+        /* Small action row beneath the search buttons: half-height buttons */
+        .small-action-row{ display:flex; gap:12px; justify-content:center; margin-top:10px; margin-bottom:16px; }
+        .small-action-row button{
+            height:20px; padding:0 8px; border-radius:8px; border:0; cursor:pointer;
+            font-weight:800; letter-spacing:0.2px; box-shadow: 0 6px 14px rgba(2,6,18,0.30);
+            transition:all var(--transition); font-size:11px; line-height:1; display:inline-flex; align-items:center; gap:6px;
+            padding-top:2px; padding-bottom:2px;
+        }
+        .small-action-row button i{ font-size:10px; }
+
+        .output-section{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:18px; }
+        /* allow the SVG to size itself based on number of frets; center it */
+        #fretboard-diagram{
+            width:auto;
+            height:180px;
+            max-width:100%;
+            display:block;
+            border-radius:12px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+            border:1px solid rgba(255,255,255,0.02);
+            box-shadow: 0 12px 40px rgba(3,7,14,0.6);
+        }
+        .output-controls{ display:flex; gap:12px; align-items:center; justify-content:center; }
+
+        #option-number{ font-size:15px; font-weight:700; color:var(--muted); }
+
+        /* Saved voicings (more premium card) */
+        .saved-voicings-section{ margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.03); }
+        .saved-voicings-section h3{ margin:0 0 12px 0; font-size:16px; color:var(--text-on-dark); }
+
+        .saved-voicings-container{
+            display:flex;
+            gap:14px;
+            flex-wrap:wrap;
+            align-items:flex-start;
+            justify-content:center;
+        }
+
+        .saved-voicing-item {
+            flex: 0 1 260px; min-width:180px; max-width:280px; border-radius:12px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            padding:16px; display:flex; flex-direction:column; align-items:center;
+            box-shadow: 0 10px 30px rgba(2,6,18,0.5); border:1px solid rgba(255,255,255,0.02);
+            transition: transform var(--transition), box-shadow var(--transition);
+            box-sizing: border-box; overflow: hidden;
+            touch-action: pan-y; /* מאפשר גלילה אנכית של הדף כשנוגעים באקורד */
+        }
+        /* ידית הגרירה - רק היא חוסמת גלילה כדי לאפשר הזזה */
+        .fa-grip-vertical { touch-action: none !important; padding: 12px; cursor: grab; color: var(--muted); }
+        .sortable-ghost { opacity: 0.2; background: var(--accent-2) !important; }
+        
+        .saved-voicing-item:hover{ transform:translateY(-6px); box-shadow: 0 18px 48px rgba(2,6,18,0.6); }
+        .saved-voicing-label{
+            font-weight:800;
+            color:var(--accent-1);
+            margin-bottom:8px;
+            font-size:14px;
+            text-transform:uppercase;
+            letter-spacing:0.6px;
+            display:block;
+            width:100%;
+            text-align:center;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        .saved-voicing-item svg{ width:100%; height:120px; margin-bottom:8px; display:block; }
+        .saved-remove-btn{ background:var(--danger); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; }
+
+         .empty-state {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            height: 180px; /* Matches the fretboard height */
+            color: var(--muted);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-on-dark);
+            font-weight: 700;
+        }
+        /* responsive adjustments */
+        @media (max-width: 880px){
+            .container{ padding:18px; }
+            .note-square{ width:64px; height:64px; min-width:64px; font-size:22px; border-radius:12px; }
+            .side-btn{ height:64px; min-width:96px; border-radius:12px; font-size:14px; }
+            .saved-voicing-item{ width:120px; }
+            #fretboard-diagram{ height:220px; }
+        }
+
+        @media (max-width: 768px){
+            
+            /* --- Mobile layout tuned for ~390px (iPhone 12) --- */
+            html, body {
+                padding-left: 12px;
+                padding-right: 12px;
+                -webkit-text-size-adjust: 100%;
+            }
+
+            .container {
+                max-width: 390px; /* match iPhone 12 width */
+                width: 100%;
+                box-sizing: border-box;
+                padding: 14px;
+            }
+
+            /* current voicing stacks vertically and uses full width */
+            .current-voicing{
+                flex-direction:column;
+                gap:12px;
+                align-items:center;
+            }
+            .note-square{
+                width:80%;
+                height:56px;
+                min-width:unset;
+                font-size:18px;
+                border-radius:10px;
+                box-shadow: 0 8px 20px rgba(2,6,18,0.38);
+            }
+
+            /* place prev/next into cv-nav bar */
+            .cv-nav{ display:flex; justify-content:center; gap:10px; margin-top:6px; }
+
+            /* buttons stack and are full width to avoid overflow */
+            .button-container{
+                flex-direction:column;
+                gap:10px;
+                width:100%;
+            }
+            .button-container button{
+                width:100%;
+                height:48px;
+                font-size:14px;
+                padding:0 12px;
+            }
+
+            /* tighten controls */
+            .controls-row{ padding:10px; gap:10px; }
+            .vl-field{ min-width:88px; }
+
+            /* Fretboard sizing for mobile: slightly shorter and guaranteed to fit */
+            #fretboard-diagram{ height:160px; }
+
+            /* Saved voicings: single column, larger elements for readability */
+            .saved-voicings-container{
+                display:flex;
+                flex-direction:column;
+                gap:12px;
+                align-items:center;
+                width:100%;
+            }
+            .saved-voicing-item{
+                width:95%;
+                padding:16px;
+                display:flex;
+                flex-direction:column;
+                align-items:stretch;
+            }
+            .saved-voicing-label{
+                font-size:15px;
+                margin-bottom:10px;
+                text-align:left;
+            }
+            .saved-voicing-item svg{
+                width:100%;
+                height:120px;
+                margin-bottom:10px;
+                display:block;
+            }
+            .saved-remove-btn{
+                width:100%;
+                padding:10px;
+                font-size:15px;
+                border-radius:10px;
+            }
+
+            /* Input numbers and range controls should not overflow:
+               override inline widths with !important for mobile */
+            .input-section input[type="number"]{
+                width:48% !important;
+                box-sizing:border-box;
+                padding:8px 10px !important;
+                font-weight:700;
+            }
+
+            /* make sure current-voicing nav buttons fit */
+            .side-btn{
+                width:100%;
+                height:44px;
+                border-radius:10px;
+            }
+
+            /* avoid any horizontal overflow */
+            body, .container, .output-section, .controls-row { overflow-x: hidden; }
+
+            /* ensure mini svgs scale within cards */
+            .saved-voicing-item svg { max-width: 100%; height: auto; }
+
+            /* Mobile placeholder style: lighter weight and subdued color */
+            .note-square::placeholder {
+                font-weight: 500 !important;
+                color: rgba(11,18,32,0.85) !important;
+                opacity: 0.9 !important;
+            }
+            .note-square.placeholder-active { opacity: 0.6; }
+        }
+
+        /* subtle animated micro-element to sell premium quality */
+        .accent-strip{
+            height:6px;
+            width:100%;
+            margin-top:12px;
+            border-radius:6px;
+            background: linear-gradient(90deg,var(--accent-2), var(--accent-3), var(--accent-1));
+            filter:drop-shadow(0 6px 20px rgba(60,110,255,0.06));
+            animation: glide 8s linear infinite;
+            opacity:0.95;
+        }
+        @keyframes glide{
+            0%{ background-position:0% 50%;}
+            50%{ background-position:100% 50%;}
+            100%{ background-position:0% 50%;}
+        }
+
+        /* voicing info panel */
+        .voicing-info{
+            margin-top:12px;
+            width:100%;
+            border-radius:8px;
+            padding:12px 14px;
+            background: rgba(4,8,12,0.55);
+            border: 2px solid rgba(64,200,145,0.18);
+            color: var(--text-on-dark);
+            box-shadow: 0 8px 24px rgba(2,6,18,0.45);
+            font-size:13px;
+            line-height:1.4;
+            max-width:100%;
+        }
+        .voicing-info .label{ font-weight:800; color:var(--accent-2); margin-right:8px; }
+        .voicing-info .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace; color:#e6f7ef; }
+        .voicing-info .row{ margin-bottom:6px; }
+        .voicing-info .dismiss{ float:right; background:transparent;border:0;color:var(--muted);cursor:pointer;font-weight:700;font-size:14px; }
+        @media (max-width:768px){
+            .voicing-info{ font-size:12px; padding:10px; border-radius:10px; }
+        }
+
+        /* Mobile Hamburger Menu (dark theme) */
+        #mobile-hamburger{
+            display:none; width:40px; height:40px; border-radius:10px; border:0;
+            background:linear-gradient(180deg,#2b2f36,#131416); color:var(--text-on-dark);
+            display:inline-grid; place-items:center; cursor:pointer; font-size:16px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4); transition: all var(--transition);
+        }
+
+        #mobile-menu-backdrop{ display:none; position:fixed; inset:0; background:rgba(2,6,12,0.45); z-index:9997; opacity:0; visibility:hidden; transition:opacity 220ms ease, visibility 220ms ease; }
+        #mobile-menu-backdrop.open{ display:block; opacity:1; visibility:visible; }
+
+        #mobile-menu{
+            position:fixed; top:0; left:0; height:100%; width:280px; max-width:82%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-right:1px solid rgba(255,255,255,0.03); box-shadow: 8px 0 40px rgba(2,6,18,0.6);
+            transform: translateX(-110%); transition: transform 260ms cubic-bezier(.2,.9,.2,1); z-index:9998; padding:64px 14px 20px 14px; border-radius:0 10px 10px 0;
+            color:var(--text-on-dark);
+        }
+        #mobile-menu.open{ transform: translateX(0); }
+        #mobile-menu .menu-close{ position:absolute; top:12px; right:12px; background:transparent; border:0; color:var(--muted); font-size:22px; cursor:pointer; }
+        #mobile-menu .menu-item{ display:flex; gap:12px; align-items:center; padding:12px 10px; border-radius:10px; color:var(--text-on-dark); cursor:pointer; background:transparent; border:0; width:100%; text-align:left; font-weight:800; }
+        #mobile-menu .menu-item i{ width:22px; text-align:center; }
+        #mobile-menu .menu-item:hover{ background: rgba(255,255,255,0.02); }
+
+        /* Hamburger is visible on all sizes; no special mobile-only rule needed */
+    /* עיצוב בזמן גרירה - נותן תחושה שהאקורד "באוויר" */
+.sortable-ghost {
+    opacity: 0.3;
+    transform: scale(0.95);
+    background: var(--accent-2) !important;
+    border: 2px dashed var(--accent-1) !important;
+}
+
+/* מוודא שהאצבע הופכת ליד כשמרחפים מעל האזור הגריר */
+.saved-voicing-item {
+    cursor: grab;
+    user-select: none; /* מונע בחירת טקסט בטעות בזמן גרירה */
+}
+
+.saved-voicing-item:active {
+    cursor: grabbing;
+}
+.set-management-row { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+.manage-btn { 
+    padding: 10px 16px; border-radius: 10px; border: 0; cursor: pointer; 
+    font-weight: 700; font-size: 14px; transition: all var(--transition);
+    display: flex; align-items: center; gap: 8px; color: white;
+}
+.manage-btn.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+.manage-btn.success { background: linear-gradient(180deg, #10b981, #059669); }
+.manage-btn.primary { background: linear-gradient(180deg, var(--accent-2), #0284c7); }
+.manage-btn.secondary { background: linear-gradient(180deg, var(--accent-3), #7c3aed); }
+.playing-now { 
+    border: 2px solid var(--accent-1) !important; 
+    box-shadow: 0 0 20px var(--accent-1), inset 0 0 10px var(--accent-1) !important;
+    transform: scale(1.05) translateY(-5px);
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+.manage-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+.modal-overlay { 
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; z-index: 10000;
+}
+.modal-overlay.open { display: flex; }
+.modal-content { 
+    background: #111827; border: 1px solid var(--glass-border); border-radius: 18px;
+    width: min(500px, 90%); max-height: 80vh; padding: 24px; position: relative; overflow-y: auto;
+}
+.modal-close { position: absolute; top: 15px; right: 15px; background: none; border: 0; color: var(--muted); font-size: 24px; cursor: pointer; }
+.library-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.library-item { 
+    background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px;
+    display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);
+}
+.lib-actions { display: flex; gap: 8px; }
+.lib-btn { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 16px; transition: color 0.2s; }
+.lib-btn:hover { color: var(--accent-1); }
+.lib-btn.del:hover { color: var(--danger); }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+    <div class="container">
+
+         <div class="header-actions">
+             <button id="mobile-hamburger" title="Menu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+         </div>
+
+       <div class="logo-container">
+          <svg width="70" height="70" viewBox="0 0 80 80" aria-hidden="true">
+          <g transform="translate(40, 40) scale(1)">
+            <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#38BDF8" /> 
+            <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#38BDF8" /> 
+            <g transform="rotate(90)">
+                <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#6EE7B7" />
+                <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#6EE7B7" />
+            </g>
+            <g transform="rotate(180)">
+                <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#9B7CFF" />
+                <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#9B7CFF" />
+            </g>
+            <g transform="rotate(270)">
+                <path d="M 0,-30 C -20,-20 -20,10 0,0" fill="#ef4444" />
+                <path d="M 0,-30 C 20,-20 20,10 0,0" fill="#ef4444" />
+            </g>
+            <circle cx="0" cy="0" r="8" fill="#1E293B" stroke="#475569" stroke-width="2"/>
+        </g>
+    </svg>
+    <div>
+                <div class="logo-title">VoicyLab</div>
+                <div class="logo-sub"></div>
+            </div>
+        </div>
+
+        <div class="controls-row" role="region" aria-label="Voice leading controls">
+            <div class="vl-panel" aria-hidden="false">
+                <div class="vl-row">
+                    <div class="vl-field">
+                        <label for="scaleRoot">Scale Root</label>
+                        <select id="scaleRoot" aria-label="Scale Root">
+                            <option>C</option><option>C#</option><option>Db</option>
+                            <option>D</option><option>D#</option><option>Eb</option>
+                            <option>E</option><option>F</option><option>F#</option>
+                            <option>Gb</option><option>G</option><option>G#</option>
+                            <option>Ab</option><option>A</option><option>A#</option>
+                            <option>B</option>
+                        </select>
+                    </div>
+
+                    <div class="vl-field">
+                        <label for="scaleType">Scale Type</label>
+<select id="scaleType" aria-label="Scale Type">
+    <option value="major">Major</option>
+    <option value="minor">Minor</option>
+    <option value="harmonic minor">Harmonic Minor</option>
+    <option value="melodic minor">Melodic Minor</option>
+    
+    <option value="dorian">Dorian</option>
+    <option value="phrygian">Phrygian</option>
+    <option value="lydian">Lydian</option>
+    <option value="mixolydian">Mixolydian</option>
+    
+    <option value="harmonic major">Harmonic Major</option>
+    <option value="lydian dominant">Lydian Dominant</option>
+</select>
+                    </div>
+
+                    <div class="vl-field">
+                        <label for="chordType">Chord Type</label>
+<select id="chordType" aria-label="Chord Type">
+    <option value="triadic_7th">Triadic/7th Chords (Default)</option>
+    <option value="tbn_1">TBN I (Triad/Bass Note)</option>
+    <option value="tbn_2">TBN II (Triad/Bass Note)</option>
+    <option value="3_part_4ths">3-part 4ths</option>
+    <option value="4_part_4ths">4-part 4ths</option>
+    <option value="spread_clusters">Spread Clusters</option>
+    <option value="shell">Shell Voicing (1-3-7)</option> </select>
+                    </div>
+                </div>
+
+<div class="vl-row">
+                    <div class="vl-field">
+                        <label for="cycle">Cycle</label>
+                        <select id="cycle" aria-label="Cycle">
+                            <option value="1" selected>2</option>
+                            <option value="2">3</option>
+                            <option value="3">4</option>
+                            <option value="4">5</option>
+                            <option value="5">6</option>
+                            <option value="6">7</option>
+                        </select>
+                    </div>
+
+                    <div class="vl-field">
+                        <label>Direction</label>
+                        <div class="vl-direction" role="group" aria-label="Voice leading direction">
+                            <button type="button" class="vl-btn" data-val="-1" id="vlDown" title="Down">▼</button>
+                            <button type="button" class="vl-btn" data-val="0" id="vlNeutral" title="Neutral">•</button>
+                            <button type="button" class="vl-btn" data-val="1" id="vlUp" title="Up">▲</button>
+                        </div>
+                    </div>
+                </div> 
+
+        <div class="current-voicing" aria-label="Current voicing">
+            <button id="predictPrev" class="side-btn prev-btn" aria-label="Prev Chord">◀ Prev</button>
+
+            <input type="text" id="note1" class="note-square" placeholder="G" aria-label="Note 1">
+            <input type="text" id="note2" class="note-square" placeholder="C" aria-label="Note 2">
+            <input type="text" id="note3" class="note-square" placeholder="E" aria-label="Note 3">
+            <input type="text" id="note4" class="note-square" placeholder="A" aria-label="Note 4">
+
+            <button id="predictNext" class="side-btn next-btn" aria-label="Next Chord">Next ▶</button>
+
+            <div class="cv-nav" aria-hidden="true"></div>
+        </div>
+        <!-- Old generate button removed; new Generate button lives in the action row below the fretboard -->
+
+        <div class="input-section" aria-label="Fret and string range">
+            <div style="display:flex; gap:12px; align-items:center;">
+                <div>
+                    <label style="display:block;font-weight:800;color:var(--muted);margin-bottom:6px;">Fret Range</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" id="minFret" value="0" min="0" max="24" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                        <input type="number" id="maxFret" value="24" min="0" max="24" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block;font-weight:800;color:var(--muted);margin-bottom:6px;">String Range</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" id="minString" value="1" min="1" max="6" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                        <input type="number" id="maxString" value="6" min="1" max="6" style="padding:8px 10px;border-radius:8px;border:0;background:#fff;color:#1b2430;font-weight:700;width:84px;text-align:center;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container" role="group" aria-label="Actions">
+            <button id="find-voicing-strict"><i class="fa-solid fa-magnifying-glass"></i>&nbsp;&nbsp;Strict Search</button>
+            <button id="find-voicing-flexible"><i class="fa-solid fa-filter"></i>&nbsp;&nbsp;Flexible Search</button>
+        </div>
+        <div class="small-action-row" role="group" aria-label="Quick actions">
+            <button id="play-voicing-button"><i class="fa-solid fa-play"></i>&nbsp;&nbsp;Play Chord</button>
+            <button id="store-voicing-button"><i class="fa-solid fa-bookmark"></i>&nbsp;&nbsp;Store Position</button>
+            <button id="generate-voicing-button"><i class="fa-solid fa-wand-magic-sparkles"></i>&nbsp;&nbsp;Generate Voicing</button>
+        </div>
+
+        <div class="output-section" role="region" aria-label="Voicing output">
+            <div class="output-section" role="region" aria-label="Voicing output">
+    
+    <div id="empty-state-placeholder" class="empty-state">
+        <i class="fa-solid fa-music"></i>
+        <h3>Find Your First Voicing</h3>
+        <p>Enter notes above and click 'Next Chord' or 'Strict Search' to begin.</p>
+    </div>
+            <svg id="fretboard-diagram" aria-hidden="false"></svg>
+            <div id="voicing-info" class="voicing-info" aria-live="polite" hidden></div>
+            <div class="output-controls" role="toolbar">
+                <button id="prev-option" title="Previous position" style="height:44px;border-radius:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border:0;color:var(--text-on-dark);cursor:pointer;"><i class="fa-solid fa-chevron-left"></i></button>
+                <div id="option-number">Enter notes to search</div>
+                <button id="next-option" title="Next position" style="height:44px;border-radius:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border:0;color:var(--text-on-dark);cursor:pointer;"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div class="accent-strip" aria-hidden="true"></div>
+
+        <div class="saved-voicings-section" aria-label="Saved voicings">
+            <h3>Saved Voicings</h3>
+        <div id="active-set-indicator" style="text-align:center; margin-bottom:10px; font-weight:bold; color:var(--accent-2); font-size:1.1em; display:none;">
+        Set: <span id="current-set-name">Untitled</span>
+    </div>
+    <div id="saved-voicings-container" class="saved-voicings-container" aria-live="polite"></div>
+
+    <div class="set-management-row">
+        <button id="play-sequence-btn" class="manage-btn secondary" title="Play sequence"><i class="fa-solid fa-play"></i> Play All</button>
+        <button id="clear-list-btn" class="manage-btn danger" title="Clear work area"><i class="fa-solid fa-trash-can"></i> Clear</button>
+        <button id="save-set-btn" class="manage-btn success" title="Save these as a Set"><i class="fa-solid fa-floppy-disk"></i> Save as Set</button>
+        <button id="open-library-btn" class="manage-btn primary" title="My Library"><i class="fa-solid fa-book-bookmark"></i> My Library</button>
+    </div>
+
+<div id="library-modal-overlay" class="modal-overlay" aria-hidden="true">
+    <div id="library-modal-content" class="modal-content">
+        <button class="modal-close" id="close-library-btn">&times;</button>
+        <h2><i class="fa-solid fa-folder-tree"></i> My Chord Sets</h2>
+        <div id="library-list-container" class="library-list">
+            </div>
+    </div>
+</div>
+        </div>
+    </div>
+
+    <div id="mobile-menu-backdrop"></div>
+    <nav id="mobile-menu" aria-hidden="true" aria-label="Mobile menu">
+        <button class="menu-close" aria-label="Close menu">&times;</button>
+        <button class="menu-item" id="mobile-help-item"><i class="fa-solid fa-question"></i>&nbsp;&nbsp;Help</button>
+        <button class="menu-item" id="mobile-dict-item"><i class="fa-solid fa-book"></i>&nbsp;&nbsp;Dictionary</button>
+        <button class="menu-item" id="mobile-contact-item"><i class="fa-solid fa-envelope"></i>&nbsp;&nbsp;Contact</button>
+    </nav>
+
+<!-- Help modal -->
+<div id="help-modal-overlay" aria-hidden="true">
+    <div id="help-modal-content" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+        <button class="help-close" aria-label="Close help">&times;</button>
+        <h2 id="help-modal-title">Welcome to VoicyLab!</h2>
+        <p>VoicyLab brings Mick Goodrick’s voicing cycles directly to your fretboard.</p>
+
+        <h3>🎸 Find voicings for any four notes</h3>
+        <ul>
+            <li>Enter up to 4 notes (low to high string).</li>
+            <li><strong>Strict Search</strong>: exact note order from low to high string.</li>
+            <li><strong>Flexible Search</strong>: all possible orders – great for playable fingerings.</li>
+            <li>Use the arrows or <strong>Next</strong> to browse all positions.</li>
+        </ul>
+
+        <h3>✨ Explore Goodrick cycles</h3>
+        <ul>
+            <li>Set Scale, Cycle (2–7), and Direction (voice-leading preference).</li>
+            <li>Enter the starting voicing.</li>
+            <li>Click <strong>Next</strong> – the app predicts the next voicing in the cycle with smooth voice-leading.</li>
+        </ul>
+
+        <p>Filter with Fret/String Range, store favorites, and play sounds.</p>
+        <p>Watch the 2-minute demo: <a href="https://www.youtube.com/watch?v=601zdE9CJ_g" target="_blank">https://youtu.be/601zdE9CJ_g</a></p>
+        <p>Enjoy the voicings!</p>
+    </div>
+</div>
+    <!-- Contact modal -->
+    <div id="contact-modal-overlay" aria-hidden="true">
+        <div id="contact-modal-content" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+            <button class="contact-close" aria-label="Close contact">&times;</button>
+            <h2 id="contact-modal-title">Contact</h2>
+            <p>Got questions? Drop me a line:<br>
+            Email: <a href="mailto:info@voicylab.app" class="contact-link">info@voicylab.app</a><br>
+            (usually reply within a few hours)</p>
+        </div>
+    </div>
+    <div id="dict-modal-overlay" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content" style="background: #0f172a; border: 1px solid var(--accent-2); max-height: 85vh; overflow-y: auto;">
+            <button class="modal-close" id="close-dict-btn">&times;</button>
+            <h2 style="color: var(--accent-1); font-size: 1.4rem; margin-bottom: 15px;"><i class="fa-solid fa-book"></i> Almanac Dictionary</h2>
+            <div id="dictionary-list" style="text-align: left; font-size: 0.85rem; line-height: 1.4;">
+                <p><b style="color:var(--accent-2)">Almanac:</b> A comprehensive catalog of diatonic voice-leading possibilities for guitar, authored by Mick Goodrick</p>
+                <p><b style="color:var(--accent-2)">Close Position:</b> Notes packed within a single octave range.</p>
+                <p><b style="color:var(--accent-2)">Common Tone:</b> A note shared between chords; ideally kept on the same string.</p>
+                <p><b style="color:var(--accent-2)">Cycle 2:</b> Movement to the next scale degree (seconds). E.g., from C to Dm.</p>
+                <p><b style="color:var(--accent-2)">Cycle 3:</b> Movement by leaps of thirds in the scale. E.g., from C to Em.</p>
+                <p><b style="color:var(--accent-2)">Cycle 4:</b> Movement by leaps of fourths (the most common). E.g., from C to F.</p>
+                <p><b style="color:var(--accent-2)">Cycle 5:</b> Movement by leaps of fifths. E.g., from C to G.</p>
+                <p><b style="color:var(--accent-2)">Cycle 6:</b> Movement by leaps of sixths (or thirds down). E.g., from C to Am.</p>
+                <p><b style="color:var(--accent-2)">Cycle 7:</b> Movement by leaps of sevenths (or a step down). E.g., from C to Bdim.</p>
+                <p><b style="color:var(--accent-2)">Diatonic:</b> Using only notes belonging to the chosen scale.</p>
+                <p><b style="color:var(--accent-2)">Drop 2 / 3:</b> Dropping the 2nd or 3rd voice from the top by an octave.</p>
+                <p><b style="color:var(--accent-2)">Guide Tones:</b> The 3rd and 7th degrees that define a chord's character.</p>
+                <p><b style="color:var(--accent-2)">Spread Clusters:</b> Tight intervals spread across strings for a modern sound.</p>
+                <p><b style="color:var(--accent-2)">TBN (Triad/Bass):</b> A 4-part structure: a 3-note triad over a scale bass.</p>
+                <p><b style="color:var(--accent-2)">TBN 1:</b> Triad starts on the <b>5th degree</b> relative to bass (e.g. G/C).</p>
+                <p><b style="color:var(--accent-2)">TBN 2:</b> Triad starts on the <b>6th degree</b> relative to bass (e.g. Am/C).</p>
+                <p><b style="color:var(--accent-2)">Voice Leading:</b> Moving between chords with minimal motion on each string.</p>
+            </div>
+        </div>
+    </div>
+
+<script>document.addEventListener('DOMContentLoaded',()=>{const urlParams=new URLSearchParams(window.location.search);const importData=urlParams.get('import');const importedSetName=urlParams.get('name')||"Imported Set";if(importData){try{const chords=decodeURIComponent(importData).split('|');const importedVoicings=chords.map(chordStr=>{const[label,posStr]=chordStr.split('_');const voicing=posStr.split('.').map(p=>{const[s,f]=p.split('-');return{string:parseInt(s),fret:parseInt(f),originalNote:label.split('-')[0]||''}});return{id:Date.now()+Math.random(),label,voicing}});localStorage.setItem('savedGuitarVoicings',JSON.stringify(importedVoicings));if(typeof updateSetTitle==='function')updateSetTitle(importedSetName);window.history.replaceState({},document.title,window.location.pathname);alert(`Successfully imported set: ${importedSetName}`);setTimeout(()=>{if(typeof renderSavedVoicings==='function')renderSavedVoicings();},500)}catch(e){console.error("Import failed:",e)}}
+let guitarSampler;let soundsLoaded=!1;const noteNamesFromPitch=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];function setupGuitarSampler(callback){try{const soundfontUrl='https://gleitz.github.io/midi-js-soundfonts/FatBoy/acoustic_guitar_nylon-mp3.js';const script=document.createElement('script');script.src=soundfontUrl;script.onload=function(){try{if(typeof MIDI!=='undefined'&&MIDI.Soundfont&&MIDI.Soundfont.acoustic_guitar_nylon){const sourceSamples=MIDI.Soundfont.acoustic_guitar_nylon;const sampleUrls={};for(const note in sourceSamples){sampleUrls[note]=sourceSamples[note]}
+if(Object.keys(sampleUrls).length>0){guitarSampler=new Tone.Sampler({urls:sampleUrls,release:0.5,baseUrl:"",onload:()=>{soundsLoaded=!0;console.log('FatBoy Nylon Guitar samples loaded');if(callback)callback();}}).toDestination();guitarSampler.volume.value=-1}else{throw new Error('No guitar samples found')}}else{throw new Error('MIDI soundfont object not found')}}catch(error){console.warn('Fallback error:',error);soundsLoaded=!1;if(callback)callback();}};script.onerror=function(){console.warn('Script load error');soundsLoaded=!1;if(callback)callback();};document.head.appendChild(script)}catch(error){console.warn('Setup error:',error);soundsLoaded=!1;if(callback)callback();}}
+function resolveAbsolutePitches(targetNoteNames,previousPitches){if(!targetNoteNames||targetNoteNames.length===0){return[]}
+let finalPitches;if(!previousPitches||previousPitches.length===0){const firstNotePc=vl_pc(targetNoteNames[0]);let startPitch=3*12+firstNotePc;const resolvedPitches=[startPitch];for(let i=1;i<targetNoteNames.length;i++){const pc=vl_pc(targetNoteNames[i]);const prevPitch=resolvedPitches[i-1];let nextPitch=prevPitch-(prevPitch%12)+pc;if(nextPitch<prevPitch){nextPitch+=12}
+resolvedPitches.push(nextPitch)}
+finalPitches=resolvedPitches}else{const avgPrevPitch=previousPitches.reduce((a,b)=>a+b,0)/previousPitches.length;let bestCandidate=[];let minTotalDistance=Infinity;const startOctaveGuess=Math.round(avgPrevPitch/12);for(let o=-1;o<=1;o++){const candidateOctave=startOctaveGuess+o;const candidatePitches=[];const firstNotePc=vl_pc(targetNoteNames[0]);candidatePitches.push(candidateOctave*12+firstNotePc);for(let i=1;i<targetNoteNames.length;i++){const pc=vl_pc(targetNoteNames[i]);const prevPitch=candidatePitches[i-1];let nextPitch=prevPitch-(prevPitch%12)+pc;if(nextPitch<prevPitch){nextPitch+=12}
+candidatePitches.push(nextPitch)}
+const avgCandidatePitch=candidatePitches.reduce((a,b)=>a+b,0)/candidatePitches.length;const distance=Math.abs(avgCandidatePitch-avgPrevPitch);if(distance<minTotalDistance){minTotalDistance=distance;bestCandidate=candidatePitches}}
+finalPitches=bestCandidate}
+const MIN_PITCH=28;const MAX_PITCH=76;while(!0){if(finalPitches.length===0)break;const maxNote=Math.max(...finalPitches);const minNote=Math.min(...finalPitches);if(maxNote>MAX_PITCH){finalPitches=finalPitches.map(p=>p-12)}else if(minNote<MIN_PITCH){finalPitches=finalPitches.map(p=>p+12)}else{break}}
+return finalPitches}
+function playGuitarChord(absolutePitches){if(!soundsLoaded||!absolutePitches||absolutePitches.length===0){return}
+if(guitarSampler){guitarSampler.releaseAll(Tone.now())}
+const sortedPitches=[...absolutePitches].sort((a,b)=>a-b);const now=Tone.now();const strumDelay=0.06;sortedPitches.forEach((pitch,index)=>{const octave=Math.floor(pitch/12);const noteName=noteNamesFromPitch[pitch%12];const fullNote=`${noteName}${octave}`;const triggerTime=now+(index*strumDelay);guitarSampler.triggerAttackRelease(fullNote,"2n",triggerTime)})}
+const noteInputs=['note1','note2','note3','note4'].map(id=>document.getElementById(id));(function(){const originalPlaceholders=noteInputs.map(el=>el?(el.getAttribute('placeholder')||''):'');function updatePlaceholdersForMobile(){const isMobile=window.innerWidth<=768;noteInputs.forEach((el,i)=>{if(!el)return;if(isMobile){const ph=(i<3)?`Note ${i+1}`:`Note ${i+1} (opt)`;el.setAttribute('placeholder',ph);el.style.opacity=el.value?'':'0.95'}else{el.setAttribute('placeholder',originalPlaceholders[i]||'');el.style.opacity=''}})}
+window.addEventListener('resize',updatePlaceholdersForMobile);updatePlaceholdersForMobile();noteInputs.forEach(el=>{if(!el)return;el.addEventListener('input',()=>{if(window.innerWidth<=768)el.style.opacity=el.value?'':'0.95'})})})();let vl_spreadClusterMode=null;const appState={predictHistory:[],maxHistory:100,vlDirState:-1,currentAbsolutePitches:[],predictionCount:0,initialVoicingNotes:[]};const minFretInput=document.getElementById('minFret');const maxFretInput=document.getElementById('maxFret');const minStringInput=document.getElementById('minString');const maxStringInput=document.getElementById('maxString');const findVoicingStrictButton=document.getElementById('find-voicing-strict');const findVoicingFlexibleButton=document.getElementById('find-voicing-flexible');const playVoicingButton=document.getElementById('play-voicing-button');const storeVoicingButton=document.getElementById('store-voicing-button');const predictNextBtn=document.getElementById('predictNext');const predictPrevBtn=document.getElementById('predictPrev');const generateVoicingButton=document.getElementById('generate-voicing-button');const optionNumberElement=document.getElementById('option-number');const fretboardSVG=document.getElementById('fretboard-diagram');const savedVoicingsContainer=document.getElementById('saved-voicings-container');const prevButton=document.getElementById('prev-option');const nextButton=document.getElementById('next-option');const voicingInfoBox=document.getElementById('voicing-info');const vlIntervalInput=document.getElementById('vlInterval');const vlDirButtons=[document.getElementById('vlDown'),document.getElementById('vlNeutral'),document.getElementById('vlUp')];const scaleRootEl=document.getElementById('scaleRoot');const scaleTypeEl=document.getElementById('scaleType');const cycleEl=document.getElementById('cycle');const chordTypeEl=document.getElementById('chordTypeSelect')||document.getElementById('chordType');const voicingTypeEl=document.getElementById('voicingTypeSelect');let vlDirState=-1;function setActiveDirection(val){vlDirState=val;vlDirButtons.forEach(b=>{if(!b)return;const v=parseInt(b.getAttribute('data-val'),10);b.classList.toggle('active',v===val);b.setAttribute('aria-pressed',String(v===val))})}
+vlDirButtons.forEach(b=>{if(b)b.addEventListener('click',()=>setActiveDirection(parseInt(b.getAttribute('data-val'),10)));});setActiveDirection(-1);function updateDirectionUI(){const currentChordType=chordTypeEl?chordTypeEl.value:'triadic_7th';const shouldDisableDirection=(currentChordType==='spread_clusters');vlDirButtons.forEach(btn=>{if(!btn)return;btn.disabled=shouldDisableDirection;btn.style.opacity=shouldDisableDirection?'0.25':'1';btn.style.cursor=shouldDisableDirection?'not-allowed':'pointer'});const dirContainer=document.querySelector('.vl-direction');if(dirContainer&&dirContainer.previousElementSibling&&dirContainer.previousElementSibling.tagName==='LABEL'){dirContainer.previousElementSibling.style.opacity=shouldDisableDirection?'0.4':'1'}}
+if(chordTypeEl){chordTypeEl.addEventListener('change',updateDirectionUI);updateDirectionUI()}
+let allVoicings=[];let currentVoicingIndex=0;const predictHistory=[];const MAX_HISTORY=100;const NUM_FRETS=24;const NUM_STRINGS=6;const MAX_FRET_SPAN=5;const MOBILE_VISIBLE_FRETS=7;const BASE_NOTE_FONT_SIZE_VALUE=18.0;const MIN_FRET_WINDOW=5;const OPTIMAL_FRET_WIDTH=48;const SVG_HORIZONTAL_PADDING=80;const DEFAULT_SVG_HEIGHT=150;const noteToFretStringMap={'E':[{fret:0,string:6,note:'E'},{fret:12,string:6,note:'E'},{fret:24,string:6,note:'E'},{fret:7,string:5,note:'E'},{fret:19,string:5,note:'E'},{fret:2,string:4,note:'E'},{fret:14,string:4,note:'E'},{fret:9,string:3,note:'E'},{fret:21,string:3,note:'E'},{fret:5,string:2,note:'E'},{fret:17,string:2,note:'E'},{fret:0,string:1,note:'E'},{fret:12,string:1,note:'E'},{fret:24,string:1,note:'E'}],'F':[{fret:1,string:6,note:'F'},{fret:13,string:6,note:'F'},{fret:8,string:5,note:'F'},{fret:20,string:5,note:'F'},{fret:3,string:4,note:'F'},{fret:15,string:4,note:'F'},{fret:10,string:3,note:'F'},{fret:22,string:3,note:'F'},{fret:6,string:2,note:'F'},{fret:18,string:2,note:'F'},{fret:1,string:1,note:'F'},{fret:13,string:1,note:'F'}],'F#':[{fret:2,string:6,note:'F#'},{fret:14,string:6,note:'F#'},{fret:9,string:5,note:'F#'},{fret:21,string:5,note:'F#'},{fret:4,string:4,note:'F#'},{fret:16,string:4,note:'F#'},{fret:11,string:3,note:'F#'},{fret:23,string:3,note:'F#'},{fret:7,string:2,note:'F#'},{fret:19,string:2,note:'F#'},{fret:2,string:1,note:'F#'},{fret:14,string:1,note:'F#'}],'G':[{fret:3,string:6,note:'G'},{fret:15,string:6,note:'G'},{fret:10,string:5,note:'G'},{fret:22,string:5,note:'G'},{fret:5,string:4,note:'G'},{fret:17,string:4,note:'G'},{fret:0,string:3,note:'G'},{fret:12,string:3,note:'G'},{fret:24,string:3,note:'G'},{fret:8,string:2,note:'G'},{fret:20,string:2,note:'G'},{fret:3,string:1,note:'G'},{fret:15,string:1,note:'G'}],'G#':[{fret:4,string:6,note:'G#'},{fret:16,string:6,note:'G#'},{fret:11,string:5,note:'G#'},{fret:23,string:5,note:'G#'},{fret:6,string:4,note:'G#'},{fret:18,string:4,note:'G#'},{fret:1,string:3,note:'G#'},{fret:13,string:3,note:'G#'},{fret:9,string:2,note:'G#'},{fret:21,string:2,note:'G#'},{fret:4,string:1,note:'G#'},{fret:16,string:1,note:'G#'}],'A':[{fret:5,string:6,note:'A'},{fret:17,string:6,note:'A'},{fret:0,string:5,note:'A'},{fret:12,string:5,note:'A'},{fret:24,string:5,note:'A'},{fret:7,string:4,note:'A'},{fret:19,string:4,note:'A'},{fret:2,string:3,note:'A'},{fret:14,string:3,note:'A'},{fret:10,string:2,note:'A'},{fret:22,string:2,note:'A'},{fret:5,string:1,note:'A'},{fret:17,string:1,note:'A'}],'A#':[{fret:6,string:6,note:'A#'},{fret:18,string:6,note:'A#'},{fret:1,string:5,note:'A#'},{fret:13,string:5,note:'A#'},{fret:8,string:4,note:'A#'},{fret:20,string:4,note:'A#'},{fret:3,string:3,note:'A#'},{fret:15,string:3,note:'A#'},{fret:11,string:2,note:'A#'},{fret:23,string:2,note:'A#'},{fret:6,string:1,note:'A#'},{fret:18,string:1,note:'A#'}],'B':[{fret:7,string:6,note:'B'},{fret:19,string:6,note:'B'},{fret:2,string:5,note:'B'},{fret:14,string:5,note:'B'},{fret:9,string:4,note:'B'},{fret:21,string:4,note:'B'},{fret:4,string:3,note:'B'},{fret:16,string:3,note:'B'},{fret:0,string:2,note:'B'},{fret:12,string:2,note:'B'},{fret:24,string:2,note:'B'},{fret:7,string:1,note:'B'},{fret:19,string:1,note:'B'}],'C':[{fret:8,string:6,note:'C'},{fret:20,string:6,note:'C'},{fret:3,string:5,note:'C'},{fret:15,string:5,note:'C'},{fret:10,string:4,note:'C'},{fret:22,string:4,note:'C'},{fret:5,string:3,note:'C'},{fret:17,string:3,note:'C'},{fret:1,string:2,note:'C'},{fret:13,string:2,note:'C'},{fret:8,string:1,note:'C'},{fret:20,string:1,note:'C'}],'C#':[{fret:9,string:6,note:'C#'},{fret:21,string:6,note:'C#'},{fret:4,string:5,note:'C#'},{fret:16,string:5,note:'C#'},{fret:11,string:4,note:'C#'},{fret:23,string:4,note:'C#'},{fret:6,string:3,note:'C#'},{fret:18,string:3,note:'C#'},{fret:2,string:2,note:'C#'},{fret:14,string:2,note:'C#'},{fret:9,string:1,note:'C#'},{fret:21,string:1,note:'C#'}],'D':[{fret:10,string:6,note:'D'},{fret:22,string:6,note:'D'},{fret:5,string:5,note:'D'},{fret:17,string:5,note:'D'},{fret:0,string:4,note:'D'},{fret:12,string:4,note:'D'},{fret:24,string:4,note:'D'},{fret:7,string:3,note:'D'},{fret:19,string:3,note:'D'},{fret:3,string:2,note:'D'},{fret:15,string:2,note:'D'},{fret:10,string:1,note:'D'},{fret:22,string:1,note:'D'}],'D#':[{fret:11,string:6,note:'D#'},{fret:23,string:6,note:'D#'},{fret:6,string:5,note:'D#'},{fret:18,string:5,note:'D#'},{fret:1,string:4,note:'D#'},{fret:13,string:4,note:'D#'},{fret:8,string:3,note:'D#'},{fret:20,string:3,note:'D#'},{fret:4,string:2,note:'D#'},{fret:16,string:2,note:'D#'},{fret:11,string:1,note:'D#'},{fret:23,string:1,note:'D#'}]};const flatToSharpMap={'DB':'C#','EB':'D#','GB':'F#','AB':'G#','BB':'A#'};function normalizeForSearch(note){return(flatToSharpMap[note?.toUpperCase()]||(note||'').toUpperCase()).replace(/\s+/g,'')}
+function getPermutations(arr){const result=[];if(arr.length===0)return[[]];if(arr.length===1)return[arr];for(let i=0;i<arr.length;i++){const first=arr[i];const rest=arr.slice(0,i).concat(arr.slice(i+1));const perms=getPermutations(rest);for(const p of perms)result.push([first].concat(p))}
+return result}
+function sortVoicings(voicings){const chordTypeElRef=document.getElementById('chordTypeSelect')||document.getElementById('chordType');const isSpreadClusterMode=chordTypeElRef&&chordTypeElRef.value==='spread_clusters';function getStats(voicing){const frets=voicing.map(v=>Number(v.fret));const strings=voicing.map(v=>v.string).sort((a,b)=>b-a);let span=0;if(isSpreadClusterMode){const activeFrets=frets.filter(f=>f>0);const minFret=Math.min(...frets);if(activeFrets.length>0){const minActive=Math.min(...activeFrets);const maxActive=Math.max(...activeFrets);span=maxActive-minActive+1}else{span=0}
+var currentMinFret=minFret}else{const minAll=Math.min(...frets);const maxAll=Math.max(...frets);span=maxAll-minAll+1;var currentMinFret=minAll}
+let totalSkips=0;for(let i=0;i<strings.length-1;i++){const diff=Math.abs(strings[i]-strings[i+1]);if(diff>1){totalSkips+=(diff-1)}}
+return{span,totalSkips,minFret:currentMinFret}}
+function getTier(span,totalSkips){if(span===6)return 6;if(totalSkips===0&&span<=4)return 1;if(totalSkips===1&&span<=3)return 2;if(totalSkips===0&&span===5)return 3;if(totalSkips===1&&span===4)return 4;return 5}
+return voicings.sort((a,b)=>{const statsA=getStats(a);const statsB=getStats(b);const tierA=getTier(statsA.span,statsA.totalSkips);const tierB=getTier(statsB.span,statsB.totalSkips);if(tierA!==tierB)return tierA-tierB;if(statsA.span!==statsB.span)return statsA.span-statsB.span;return statsA.minFret-statsB.minFret})}
+function findVoicingsRecursiveStrict(notes,currentVoicing,usedStrings,allVoicings,noteIndex,minString,maxString){if(noteIndex===notes.length){allVoicings.push([...currentVoicing]);return}
+const originalNote=notes[noteIndex];const noteToFind=normalizeForSearch(originalNote);const possiblePositions=noteToFretStringMap[noteToFind];if(!possiblePositions)return;for(const pos of possiblePositions){if(pos.string>=minString&&pos.string<=maxString){if(!usedStrings.has(pos.string)){if(noteIndex===0||pos.string<currentVoicing[currentVoicing.length-1].string){usedStrings.add(pos.string);const newVoicing=[...currentVoicing,{...pos,originalNote:originalNote}];findVoicingsRecursiveStrict(notes,newVoicing,usedStrings,allVoicings,noteIndex+1,minString,maxString);usedStrings.delete(pos.string)}}}}}
+function getUniqueVoicings(foundVoicings,minFret,maxFret){const unique=[];const keys=new Set();foundVoicings.forEach(voicing=>{const frets=voicing.map(v=>Number(v.fret));if(frets.length===0)return;const activeNotes=voicing.filter(v=>Number(v.fret)>0);const activeFrets=activeNotes.map(v=>Number(v.fret));let span=0;let hasActiveSkips=!1;let isMaxFretOnLowestActiveString=!1;let hasInvalidOpenSkip=!1;if(activeFrets.length>0){const minActive=Math.min(...activeFrets);const maxActive=Math.max(...activeFrets);span=maxActive-minActive+1;const activeStrings=activeNotes.map(v=>v.string).sort((a,b)=>a-b);for(let i=0;i<activeStrings.length-1;i++){if(activeStrings[i+1]-activeStrings[i]>1){hasActiveSkips=!0;break}}
+const maxActiveString=Math.max(...activeStrings);const minActiveString=Math.min(...activeStrings);const maxFretNotes=activeNotes.filter(n=>Number(n.fret)===maxActive);isMaxFretOnLowestActiveString=maxFretNotes.some(n=>n.string===maxActiveString);const openNotes=voicing.filter(v=>Number(v.fret)===0);for(const oNote of openNotes){const oStr=oNote.string;if(oStr<minActiveString-1){hasInvalidOpenSkip=!0;break}}}
+const minAll=Math.min(...frets);const maxAll=Math.max(...frets);let isValidSpan=!1;if(span<=5){isValidSpan=!0}else if(span===6&&!hasActiveSkips&&isMaxFretOnLowestActiveString&&!hasInvalidOpenSkip){isValidSpan=!0}
+if(minAll>=minFret&&maxAll<=maxFret&&isValidSpan){const sorted=[...voicing].sort((a,b)=>a.string-b.string);const key=JSON.stringify(sorted.map(v=>({fret:v.fret,string:v.string})));if(!keys.has(key)){keys.add(key);unique.push(voicing)}}});return unique}
+function findAndFilterVoicingsStrict(){const inputNotes=noteInputs.map(i=>i.value).filter(n=>n&&n.trim()!=='');if(inputNotes.length===0)return[];const minString=parseInt(minStringInput.value,10)||1;const maxString=parseInt(maxStringInput.value,10)||6;const minFret=parseInt(minFretInput.value,10)||0;const maxFret=parseInt(maxFretInput.value,10)||24;const found=[];findVoicingsRecursiveStrict(inputNotes,[],new Set(),found,0,minString,maxString);const unique=getUniqueVoicings(found,minFret,maxFret);return sortVoicings(unique)}
+function findAndFilterVoicingsFlexible(){const inputNotes=noteInputs.map(i=>i.value).filter(n=>n&&n.trim()!=='');if(inputNotes.length===0)return[];const minString=parseInt(minStringInput.value,10)||1;const maxString=parseInt(maxStringInput.value,10)||6;const minFret=parseInt(minFretInput.value,10)||0;const maxFret=parseInt(maxFretInput.value,10)||24;const all=[];const perms=getPermutations(inputNotes);perms.forEach(p=>{const found=[];findVoicingsRecursiveStrict(p,[],new Set(),found,0,minString,maxString);all.push(...found)});const unique=getUniqueVoicings(all,minFret,maxFret);return sortVoicings(unique)}
+function drawFretboard(targetSVG,startFret=0,numFrets=NUM_FRETS,noteRadius=11.11,noteFontSize=12.6,fretFontSize=BASE_NOTE_FONT_SIZE_VALUE*0.9,yOffsetMultiplier=1.5){targetSVG.innerHTML='';if(!numFrets||numFrets<=0)numFrets=NUM_FRETS;const isMainLocal=(targetSVG===fretboardSVG);const VIEWBOX_PADDING=SVG_HORIZONTAL_PADDING;let fretWidthPx;let viewBoxWidth;let viewBoxHeight=targetSVG.clientHeight&&!isNaN(targetSVG.clientHeight)?targetSVG.clientHeight:DEFAULT_SVG_HEIGHT;if(isMainLocal&&window.innerWidth>768){fretWidthPx=OPTIMAL_FRET_WIDTH;const FRETBOARD_WIDTH=fretWidthPx*numFrets;viewBoxWidth=FRETBOARD_WIDTH+VIEWBOX_PADDING;targetSVG.setAttribute('viewBox',`0 0 ${viewBoxWidth} ${viewBoxHeight}`);targetSVG.style.width=`${viewBoxWidth}px`;targetSVG.style.maxWidth='100%';targetSVG.style.height='auto'}else{const clientW=targetSVG.clientWidth||(isMainLocal?Math.min(window.innerWidth-120,OPTIMAL_FRET_WIDTH*numFrets):300);let fretWidthCandidate=Math.max(16,(clientW-VIEWBOX_PADDING)/Math.max(1,numFrets));fretWidthPx=isMainLocal?OPTIMAL_FRET_WIDTH:Math.min(OPTIMAL_FRET_WIDTH,Math.max(16,fretWidthCandidate));if(isMainLocal&&clientW<OPTIMAL_FRET_WIDTH*numFrets){fretWidthPx=Math.max(20,(clientW-VIEWBOX_PADDING)/Math.max(1,numFrets))}
+const FRETBOARD_WIDTH=fretWidthPx*numFrets;viewBoxWidth=FRETBOARD_WIDTH+VIEWBOX_PADDING;targetSVG.setAttribute('viewBox',`0 0 ${viewBoxWidth} ${viewBoxHeight}`);if(isMainLocal){targetSVG.style.width=`${Math.min(viewBoxWidth, Math.max(360, Math.min(window.innerWidth - 80, viewBoxWidth)))}px`;targetSVG.style.height=`${viewBoxHeight}px`}else{targetSVG.style.width='100%';targetSVG.style.height=`${viewBoxHeight}px`}}
+const FRETBOARD_START_X=VIEWBOX_PADDING/2;const FRETBOARD_START_Y=20;const FRETBOARD_HEIGHT=Math.max(60,viewBoxHeight-40);const STRING_HEIGHT=FRETBOARD_HEIGHT/(NUM_STRINGS-1);const FRET_WIDTH=fretWidthPx;const FRETBOARD_WIDTH_FINAL=fretWidthPx*numFrets;for(let i=0;i<NUM_STRINGS;i++){const y=FRETBOARD_START_Y+i*STRING_HEIGHT;targetSVG.innerHTML+=`<line x1="${FRETBOARD_START_X}" y1="${y}" x2="${FRETBOARD_START_X + FRETBOARD_WIDTH_FINAL}" y2="${y}" stroke="rgba(255,255,255,0.70)" stroke-width="1.2" class="string-line" />`;if(isMainLocal){targetSVG.innerHTML+=`<text x="${FRETBOARD_START_X - 10}" y="${y + noteFontSize * 0.3}" font-size="${noteFontSize}" text-anchor="end" fill="rgba(255,255,255,0.75)">${i + 1}</text>`}}
+for(let i=0;i<=numFrets;i++){const x=FRETBOARD_START_X+i*FRET_WIDTH;targetSVG.innerHTML+=`<line x1="${x}" y1="${FRETBOARD_START_Y}" x2="${x}" y2="${FRETBOARD_START_Y + (NUM_STRINGS - 1) * STRING_HEIGHT}" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" class="fret-line" />`;const fretNumber=startFret+i;if(fretNumber>=0&&i>0){const labelY=FRETBOARD_START_Y+(NUM_STRINGS-1)*STRING_HEIGHT+noteRadius*yOffsetMultiplier;targetSVG.innerHTML+=`<text x="${x - FRET_WIDTH / 2}" y="${labelY}" font-size="${fretFontSize}" text-anchor="middle" fill="rgba(255,255,255,0.75)">${fretNumber}</text>`}}}
+function drawVoicing(targetSVG,voicing,providedStartFret=null,providedNumFrets=null){const isMain=targetSVG===fretboardSVG;const BASE_NOTE_RADIUS=11.11;const BASE_NOTE_FONT_SIZE=BASE_NOTE_FONT_SIZE_VALUE;let startFret=(providedStartFret===null||providedStartFret===undefined)?null:providedStartFret;let numFretsToDisplay=(providedNumFrets===null||providedNumFrets===undefined)?null:providedNumFrets;const fretValues=(voicing&&voicing.length>0)?voicing.map(n=>Number(n.fret||0)):[];if(startFret===null){const activeFrets=fretValues.filter(f=>f>0);if(activeFrets.length===0){startFret=0;numFretsToDisplay=3}else{let minActive=Math.min(...activeFrets);let maxActive=Math.max(...activeFrets);if(maxActive<=4){startFret=0;numFretsToDisplay=Math.max(3,maxActive)}else{startFret=Math.max(0,minActive-1);const span=maxActive-minActive+1;numFretsToDisplay=Math.max(3,span)}}}else{if(!numFretsToDisplay)numFretsToDisplay=isMain?NUM_FRETS:MOBILE_VISIBLE_FRETS}
+if(!isMain||(isMain&&window.innerWidth<=768)){if(numFretsToDisplay<MOBILE_VISIBLE_FRETS&&startFret!==null)numFretsToDisplay=MOBILE_VISIBLE_FRETS;if(startFret+numFretsToDisplay>NUM_FRETS)startFret=Math.max(0,NUM_FRETS-numFretsToDisplay);}
+const noteRadius=BASE_NOTE_RADIUS;const noteFontSize=isMain?BASE_NOTE_FONT_SIZE*0.8:BASE_NOTE_FONT_SIZE*0.65;const fretFontSize=isMain?BASE_NOTE_FONT_SIZE*0.85:BASE_NOTE_FONT_SIZE*0.6;drawFretboard(targetSVG,startFret,numFretsToDisplay,noteRadius,noteFontSize,fretFontSize,isMain?1.5:2.0);const viewBoxString=targetSVG.getAttribute('viewBox')||`0 0 ${targetSVG.clientWidth || 1000} ${targetSVG.clientHeight || DEFAULT_SVG_HEIGHT}`;const[,,viewBoxWidth,viewBoxHeight]=viewBoxString.split(' ').map(Number);const FRETBOARD_START_X=SVG_HORIZONTAL_PADDING/2;const FRETBOARD_START_Y=20;const FRETBOARD_HEIGHT=Math.max(60,viewBoxHeight-40);const effectiveFretWidth=(viewBoxWidth-SVG_HORIZONTAL_PADDING)/Math.max(1,numFretsToDisplay);const STRING_HEIGHT=FRETBOARD_HEIGHT/(NUM_STRINGS-1);voicing.forEach(notePos=>{const string=notePos.string;const fret=Number(notePos.fret||0);const noteName=notePos.originalNote||notePos.note;const isVisible=(fret>startFret&&fret<=startFret+numFretsToDisplay);if(isVisible||fret===0){let x;if(fret===0){x=FRETBOARD_START_X-20}else{x=FRETBOARD_START_X+(fret-startFret-1)*effectiveFretWidth+effectiveFretWidth/2}
+const y=FRETBOARD_START_Y+(string-1)*STRING_HEIGHT;const r=isMain?BASE_NOTE_RADIUS:Math.max(7,BASE_NOTE_RADIUS*0.7);const nf=isMain?BASE_NOTE_FONT_SIZE*0.8:BASE_NOTE_FONT_SIZE*0.58;targetSVG.innerHTML+=`<circle cx="${x}" cy="${y}" r="${r}" fill="#f8fafc" stroke="rgba(0,0,0,0.06)" stroke-width="1.2" class="note-circle" />`;targetSVG.innerHTML+=`<text x="${x}" y="${y}" text-anchor="middle" alignment-baseline="central" font-size="${nf}" fill="#0b1220" class="note-text" font-weight="700">${noteName}</text>`}})}
+function formatPcNames(pcs){if(!pcs||pcs.length===0)return'';return pcs.map(p=>{if(typeof p==='number')return vl_nameFromPc(p);return String(p)}).join(', ')}
+function updateVoicingInfo({title=null,targetDegree=null,targetChordPcs=null,autoFrozen=null,predictedVoicing=null,currentVoicing=null}={}){if(!voicingInfoBox)return;const parts=[];if(title)parts.push(`<div class="row"><strong class="label">${title}</strong></div>`);if(targetDegree!==null)parts.push(`<div class="row"><span class="label">Target degree:</span> <span class="mono">${targetDegree}</span></div>`);if(targetChordPcs)parts.push(`<div class="row"><span class="label">Target chord tones:</span> <span class="mono">${formatPcNames(targetChordPcs)}</span></div>`);if(autoFrozen&&autoFrozen.length)parts.push(`<div class="row"><span class="label">Auto‑Frozen Tones:</span> <span class="mono">${formatPcNames(autoFrozen)}</span></div>`);if(predictedVoicing)parts.push(`<div class="row"><span class="label">Predicted Voicing (V1..):</span> <span class="mono">${predictedVoicing.join(', ')}</span></div>`);if(currentVoicing){const notes=currentVoicing.map(n=>n.originalNote||n.note||`${n.fret}@${n.string}`);parts.push(`<div class="row"><span class="label">Current voicing:</span> <span class="mono">${notes.join(', ')}</span></div>`)}
+if(parts.length===0){voicingInfoBox.hidden=!0;voicingInfoBox.innerHTML='';return}
+voicingInfoBox.innerHTML=parts.join('')+`<button class="dismiss" aria-label="Dismiss info" title="Dismiss" onclick="this.parentNode.hidden=true">×</button>`;voicingInfoBox.hidden=!1}
+function clearVoicingInfo(){updateVoicingInfo()}
+function displayCurrentVoicing(){const emptyState=document.getElementById('empty-state-placeholder');const fretboard=document.getElementById('fretboard-diagram');const outputControls=document.querySelector('.output-controls');if(allVoicings.length>0&&allVoicings[currentVoicingIndex]){emptyState.style.display='none';fretboard.style.display='block';outputControls.style.display='flex';const voicing=allVoicings[currentVoicingIndex];drawVoicing(fretboard,voicing);optionNumberElement.textContent=`Option ${currentVoicingIndex + 1} of ${allVoicings.length}`;prevButton.disabled=currentVoicingIndex===0;nextButton.disabled=currentVoicingIndex>=allVoicings.length-1;[playVoicingButton,storeVoicingButton].forEach(b=>b.disabled=!1);const chordTypeEl=document.getElementById('chordTypeSelect')||document.getElementById('chordType');const isTbnMode=chordTypeEl&&chordTypeEl.value.startsWith('tbn');let title='Voicing';if(isTbnMode){const noteNames=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];const voicingNotes=voicing.map(v=>v.originalNote||v.note);const identifyTriad=(threeNotes)=>{const pcs=threeNotes.map(vl_pc).sort((a,b)=>a-b);for(let j=0;j<3;j++){const root=pcs[j];const intervals=pcs.map(p=>(p-root+12)%12).sort((a,b)=>a-b);const struct=[...new Set(intervals)].join(',');const rootName=noteNames[root%12];if(struct==='0,4,7')return rootName;if(struct==='0,3,7')return rootName+'m';if(struct==='0,3,6')return rootName+'dim';if(struct==='0,4,8')return rootName+'aug'}
+return null};for(let i=0;i<4;i++){const potentialBass=voicingNotes[i];const potentialTriad=voicingNotes.filter((_,idx)=>idx!==i);const triadName=identifyTriad(potentialTriad);if(triadName){title=`${triadName} / ${potentialBass}`;break}}}else{const chordId=vl_identifyChord(noteInputs.map(n=>n.value));title=chordId?`${chordId.root} ${chordId.type}`:'Voicing'}
+updateVoicingInfo({title,currentVoicing:voicing,targetChordPcs:voicing.map(v=>v.originalNote||v.note)})}else{emptyState.style.display='flex';fretboard.style.display='none';outputControls.style.display='none';const predictedNotes=noteInputs.map(input=>input.value).filter(Boolean);if(predictedNotes.length>0){emptyState.innerHTML=`
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 40px; margin-bottom: 15px; opacity: 0.9; color: var(--accent-2);"></i>
+                <h3 style="color: var(--text-on-dark); margin: 0 0 10px 0;">No Strict Voicings Found</h3>
+                <p style="font-size: 1.1em; margin-bottom: 12px; color: var(--text-on-dark);">
+                    Predicted: <span style="font-family: monospace; color: var(--accent-1);">${predictedNotes.join(', ')}</span>
+                </p>
+                <p style="color: var(--muted); max-width: 320px; line-height: 1.5; margin: 0 auto;">
+                    Try expanding the Fret/String range, or use <strong>Flexible Search</strong>.
+                </p>
+             `;optionNumberElement.textContent=""}else{emptyState.innerHTML=`
+                <i class="fa-solid fa-music" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                <h3 style="margin: 0 0 10px 0; color: var(--text-on-dark);">Find Your First Voicing</h3>
+                <p style="color: var(--muted);">Enter notes above and click 'Next Chord' or 'Strict Search' to begin.</p>
+            `;optionNumberElement.textContent="Enter notes to search"}[prevButton,nextButton,playVoicingButton,storeVoicingButton].forEach(b=>b.disabled=!0);clearVoicingInfo()}}
+let audioContext;const stringFrequencies={1:329.63,2:246.94,3:196.00,4:146.83,5:110.00,6:82.41};function initAudioContext(){if(!audioContext)audioContext=new(window.AudioContext||window.webkitAudioContext)();}
+function playNote(string,fret){initAudioContext();const osc=audioContext.createOscillator();const gain=audioContext.createGain();const filter=audioContext.createBiquadFilter();const frequency=stringFrequencies[string]*Math.pow(2,(Number(fret)+0)/12);osc.type='sine';osc.frequency.value=frequency;filter.type='lowpass';filter.frequency.value=2500;filter.Q.value=1;const now=audioContext.currentTime;const attack=0.04,decay=0.5,sustain=0.25,release=0.6;gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(0.28,now+attack);gain.gain.linearRampToValueAtTime(sustain,now+attack+decay);gain.gain.setValueAtTime(sustain,now+0.9);gain.gain.linearRampToValueAtTime(0,now+0.9+release);osc.connect(filter);filter.connect(gain);gain.connect(audioContext.destination);osc.start(now);osc.stop(now+0.9+release+0.05)}
+function playVoicing(){const v=allVoicings[currentVoicingIndex];if(!v||v.length===0){optionNumberElement.textContent="No chord to play. Find a voicing first.";return}
+const stringBasePitches={6:28,5:33,4:38,3:43,2:47,1:52};const absolutePitches=v.map(noteData=>{const stringNum=noteData.string;const fretNum=parseInt(noteData.fret||0,10);if(stringBasePitches[stringNum]!==undefined){return stringBasePitches[stringNum]+fretNum}
+return 0}).filter(p=>p>0);appState.currentAbsolutePitches=absolutePitches;playGuitarChord(absolutePitches)}
+function loadSavedVoicings(){try{const s=localStorage.getItem('savedGuitarVoicings');return s?JSON.parse(s):[]}catch(e){return[]}}
+function saveVoicing(voicing){const saved=loadSavedVoicings();const key=JSON.stringify(voicing.map(v=>({fret:v.fret,string:v.string})));if(saved.some(s=>JSON.stringify(s.voicing.map(v=>({fret:v.fret,string:v.string})))===key)){storeVoicingButton.textContent="Already Saved!";setTimeout(()=>storeVoicingButton.textContent="Store Position",1300);return}
+const item={id:Date.now(),label:voicing.map(v=>v.originalNote||v.note).join('-'),voicing};saved.push(item);localStorage.setItem('savedGuitarVoicings',JSON.stringify(saved));renderSavedVoicings();storeVoicingButton.textContent="Saved!";setTimeout(()=>storeVoicingButton.textContent="Store Position",1300)}
+function deleteVoicing(id){let s=loadSavedVoicings();s=s.filter(x=>x.id!==id);localStorage.setItem('savedGuitarVoicings',JSON.stringify(s));renderSavedVoicings()}
+function renderSavedVoicings(){savedVoicingsContainer.innerHTML='';const saved=loadSavedVoicings();if(!saved||saved.length===0){savedVoicingsContainer.innerHTML=`<div style="width:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);padding:14px">No saved voicings yet</div>`;return}
+saved.forEach(item=>{const div=document.createElement('div');div.className='saved-voicing-item';div.dataset.id=item.id;div.innerHTML=`
+    <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <i class="fa-solid fa-grip-vertical" style="color:var(--muted); cursor:grab;"></i>
+        <span class="saved-voicing-label" style="margin:0; flex-grow:1; text-align:center;" title="${item.label}">${item.label.replace(/-/g,'•')}</span>
+        <div style="width:20px;"></div> </div>`;const mini=document.createElementNS("http://www.w3.org/2000/svg","svg");mini.setAttribute('preserveAspectRatio','xMidYMid meet');mini.setAttribute('viewBox','0 0 400 150');mini.style.width='100%';mini.style.height='120px';mini.style.display='block';div.appendChild(mini);const frets=item.voicing.map(v=>Math.max(0,Number(v.fret||0)));let minF=frets.length?Math.min(...frets):0;let maxF=frets.length?Math.max(...frets):Math.min(5,NUM_FRETS);minF=Math.max(0,minF-1);maxF=Math.min(NUM_FRETS,maxF+1);const span=Math.max(1,maxF-minF);const numFrets=Math.min(8,Math.max(4,span+2));const startFret=Math.max(0,minF);drawVoicing(mini,item.voicing,startFret,numFrets);const del=document.createElement('button');del.textContent='Remove';del.className='saved-remove-btn';del.addEventListener('click',()=>deleteVoicing(item.id));div.appendChild(del);savedVoicingsContainer.appendChild(div)})}
+function updateSavedOrder(){const items=Array.from(savedVoicingsContainer.querySelectorAll('.saved-voicing-item'));const currentSaved=loadSavedVoicings();const newOrder=items.map(el=>{const id=parseInt(el.dataset.id);return currentSaved.find(s=>s.id===id)}).filter(Boolean);localStorage.setItem('savedGuitarVoicings',JSON.stringify(newOrder))}
+let activeSetName="";function updateSetTitle(name){const indicator=document.getElementById('active-set-indicator');const nameSpan=document.getElementById('current-set-name');if(name){activeSetName=name;nameSpan.textContent=name;indicator.style.display='block'}else{activeSetName="";indicator.style.display='none'}}
+async function playSequence(){const chords=loadSavedVoicings();if(chords.length===0)return;await Tone.start();console.log("Audio Context Started");const btn=document.getElementById('play-sequence-btn');btn.disabled=!0;const items=document.querySelectorAll('.saved-voicing-item');const stringBasePitches={6:28,5:33,4:38,3:43,2:47,1:52};try{for(let i=0;i<chords.length;i++){console.log(`Playing chord ${i+1}: ${chords[i].label}`);btn.innerHTML=`<i class="fa-solid fa-volume-high fa-beat"></i> Playing: ${chords[i].label}`;if(items[i])items[i].classList.add('playing-now');const voicingData=chords[i].voicing;const absolutePitches=voicingData.map(n=>{const s=parseInt(n.string);const f=parseInt(n.fret||0);return stringBasePitches[s]+f});playGuitarChord(absolutePitches);await new Promise(r=>setTimeout(r,1100));if(items[i])items[i].classList.remove('playing-now');}}catch(err){console.error("Playback error:",err)}finally{btn.disabled=!1;btn.innerHTML='<i class="fa-solid fa-play"></i> Play All';console.log("Sequence Finished")}}
+function clearCurrentList(){if(confirm("Clear all currently saved voicings? (This won't delete your saved Sets)")){localStorage.setItem('savedGuitarVoicings',JSON.stringify([]));updateSetTitle("");renderSavedVoicings()}}
+function saveAsSet(){const currentVoicings=loadSavedVoicings();if(currentVoicings.length===0){alert("Nothing to save! Add some voicings first.");return}
+const setName=prompt("Enter a name for this Set:",activeSetName||"Untitled Set")||"Untitled Set";const sets=JSON.parse(localStorage.getItem('voicylab_sets')||'[]');const existingIndex=sets.findIndex(s=>s.name===setName);const newSet={id:Date.now(),name:setName,data:currentVoicings,date:new Date().toLocaleDateString()};if(existingIndex>-1)sets[existingIndex]=newSet;else sets.push(newSet);localStorage.setItem('voicylab_sets',JSON.stringify(sets));updateSetTitle(setName);alert("Set saved to Library!")}
+function renderLibrary(){const container=document.getElementById('library-list-container');const sets=JSON.parse(localStorage.getItem('voicylab_sets')||'[]');container.innerHTML=sets.length?'':'<p style="color:var(--muted); text-align:center;">Your library is empty.</p>';sets.forEach(set=>{const item=document.createElement('div');item.className='library-item';item.innerHTML=`
+                    <div style="flex-grow:1;">
+                        <div style="font-weight:800; color:var(--accent-1);">${set.name}</div>
+                        <div style="font-size:11px; color:var(--muted);">${set.data.length} voicings • ${set.date}</div>
+                    </div>
+                    <div class="lib-actions">
+                        <button class="lib-btn" onclick="loadSetFromLib(${set.id})" title="Load"><i class="fa-solid fa-upload"></i></button>
+                        <button class="lib-btn" onclick="shareSet(${set.id})" title="Share"><i class="fa-brands fa-whatsapp"></i></button>
+                        <button class="lib-btn del" onclick="deleteSet(${set.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;container.appendChild(item)})}
+window.loadSetFromLib=(id)=>{const sets=JSON.parse(localStorage.getItem('voicylab_sets')||'[]');const set=sets.find(s=>s.id===id);if(set){localStorage.setItem('savedGuitarVoicings',JSON.stringify(set.data));renderSavedVoicings();updateSetTitle(set.name);document.getElementById('library-modal-overlay').classList.remove('open')}};window.deleteSet=(id)=>{if(confirm("Delete this set permanently?")){let sets=JSON.parse(localStorage.getItem('voicylab_sets')||'[]');sets=sets.filter(s=>s.id!==id);localStorage.setItem('voicylab_sets',JSON.stringify(sets));renderLibrary()}};window.shareSet=(id)=>{const sets=JSON.parse(localStorage.getItem('voicylab_sets')||'[]');const set=sets.find(s=>s.id===id);if(set){const encodedData=set.data.map(v=>{const positions=v.voicing.map(p=>`${p.string}-${p.fret}`).join('.');return `${v.label}_${positions}`}).join('|');const baseUrl=window.location.origin+window.location.pathname;const shareUrl=`${baseUrl}?import=${encodeURIComponent(encodedData)}&name=${encodeURIComponent(set.name)}`;const listText=set.data.map((c,i)=>`${i+1}. *${c.label.replace(/-/g,' ')}*`).join('\n');const message=`🎸 *VoicyLab Set: ${set.name}*\n\n${listText}\n\nClick to load voicings:\n${shareUrl}`;window.open(`https://wa.me/?text=${encodeURIComponent(message)}`,'_blank')}};document.getElementById('play-sequence-btn').addEventListener('click',playSequence);document.getElementById('clear-list-btn').addEventListener('click',clearCurrentList);document.getElementById('save-set-btn').addEventListener('click',saveAsSet);document.getElementById('open-library-btn').addEventListener('click',()=>{renderLibrary();document.getElementById('library-modal-overlay').classList.add('open')});document.getElementById('close-library-btn').addEventListener('click',()=>{document.getElementById('library-modal-overlay').classList.remove('open')});let vl_prevScaleRoot=scaleRootEl.value;scaleRootEl.addEventListener('change',()=>{const newRoot=scaleRootEl.value;const oldPc=vl_pc(vl_prevScaleRoot);const newPc=vl_pc(newRoot);if(oldPc!==-1&&newPc!==-1){const shift=newPc-oldPc;noteInputs.forEach(input=>{if(input.value&&input.value.trim()!==''){const currentPc=vl_pc(input.value);if(currentPc!==-1){const newNotePc=((currentPc+shift)%12+12)%12;input.value=vl_nameFromPc(newNotePc)}}});allVoicings=findAndFilterVoicingsStrict();currentVoicingIndex=0;displayCurrentVoicing();const chordId=vl_identifyChord(noteInputs.map(n=>n.value));if(chordId)updateVoicingInfo({title:`Modulated to: ${chordId.root} ${chordId.type}`})}
+vl_prevScaleRoot=newRoot});findVoicingStrictButton.addEventListener('click',()=>{allVoicings=findAndFilterVoicingsStrict();currentVoicingIndex=0;displayCurrentVoicing()});findVoicingFlexibleButton.addEventListener('click',()=>{allVoicings=findAndFilterVoicingsFlexible();currentVoicingIndex=0;displayCurrentVoicing()});if(generateVoicingButton)generateVoicingButton.addEventListener('click',generateInitialVoicing);storeVoicingButton.addEventListener('click',()=>{if(allVoicings.length>0)saveVoicing(allVoicings[currentVoicingIndex]);});prevButton.addEventListener('click',()=>{if(currentVoicingIndex>0){currentVoicingIndex--;displayCurrentVoicing()}});nextButton.addEventListener('click',()=>{if(currentVoicingIndex<allVoicings.length-1){currentVoicingIndex++;displayCurrentVoicing()}});playVoicingButton.addEventListener('click',playVoicing);window.addEventListener('resize',()=>{displayCurrentVoicing();adjustCvNavForMobile()});displayCurrentVoicing();renderSavedVoicings();let vl_lastQuartalBaseDegree=null;let vl_lastQuartalNames=null;let vl_lastTBN_BassDegree=null;let vl_lastTBN_BassNoteName=null;const vl_notesMap={'C':0,'C#':1,'DB':1,'D':2,'D#':3,'EB':3,'E':4,'F':5,'F#':6,'GB':6,'G':7,'G#':8,'AB':8,'A':9,'A#':10,'BB':10,'B':11};const vl_noteNames=['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];const vl_scales={'major':[0,2,4,5,7,9,11],'minor':[0,2,3,5,7,8,10],'harmonic minor':[0,2,3,5,7,8,11],'melodic minor':[0,2,3,5,7,9,11]};const vl_chordStructures={'maj7':[0,4,7,11],'m7':[0,3,7,10],'7':[0,4,7,10],'m7b5':[0,3,6,10],'m(maj7)':[0,3,7,11],'maj7(#5)':[0,4,8,11],'dim7':[0,3,6,9],'maj':[0,4,7],'min':[0,3,7],'dim':[0,3,6],'aug':[0,4,8]};const vl_diatonicChords={'major':['maj7','m7','m7','maj7','7','m7','m7b5'],'minor':['m7','m7b5','maj7','m7','m7','maj7','7'],'harmonic minor':['m(maj7)','m7b5','maj7(#5)','m7','7','maj7','dim7'],'melodic minor':['m(maj7)','m7','maj7(#5)','7','7','m7b5','m7b5'],'dorian':['m7','m7','maj7','7','m7','m7b5','maj7'],'phrygian':['m7','maj7','7','m7','m7b5','maj7','m7'],'lydian':['maj7','7','m7','m7b5','maj7','m7','m7'],'mixolydian':['7','m7','m7b5','maj7','m7','m7','maj7'],'harmonic major':['maj7','m7b5','m7','m(maj7)','7','maj7','dim7'],'lydian dominant':['7','7','m7b5','m(maj7)','m7','m7','maj7(#5)']};const vl_diatonicTriads={'major':['maj','min','min','maj','maj','min','dim'],'minor':['min','dim','maj','min','min','maj','maj'],'harmonic minor':['min','dim','aug','min','maj','maj','dim'],'melodic minor':['min','min','aug','maj','maj','dim','dim'],'dorian':['min','min','maj','maj','min','dim','maj'],'phrygian':['min','maj','maj','min','dim','maj','min'],'lydian':['maj','maj','min','dim','maj','min','min'],'mixolydian':['maj','min','dim','maj','min','min','maj'],'harmonic major':['maj','dim','min','min','maj','aug','dim'],'lydian dominant':['maj','maj','dim','dim','min','min','aug']};const TBN_I_RULES_VL={};function defineTBNRules(cycleNum,moves){TBN_I_RULES_VL[cycleNum]={};for(let bass=1;bass<=7;bass++){TBN_I_RULES_VL[cycleNum][bass]={};if(moves['1'])TBN_I_RULES_VL[cycleNum][bass][1]={move:moves['1']};if(moves['2'])TBN_I_RULES_VL[cycleNum][bass][2]={move:moves['2']};if(moves['5'])TBN_I_RULES_VL[cycleNum][bass][5]={move:moves['5']};if(moves['7'])TBN_I_RULES_VL[cycleNum][bass][7]={move:moves['7']}}}
+defineTBNRules(2,{'1':1,'2':0,'5':-2,'7':-1});defineTBNRules(3,{'1':1,'2':1,'5':-1,'7':0});defineTBNRules(4,{'1':0,'2':1,'5':-1,'7':-2});function vl_normalize(s){if(!s)return'';let str=String(s).trim().replace(/♭/g,'b').replace(/♯/g,'#');str=str.replace(/\s+/g,'');if(str.length===0)return'';const first=str.charAt(0).toUpperCase();const rest=str.slice(1).toLowerCase();return first+rest}
+function vl_pc(raw){const n=vl_normalize(raw);if(!n)return-1;const key=n.toUpperCase();return(vl_notesMap[key]!==undefined)?vl_notesMap[key]:-1}
+function vl_nameFromPc(v){return vl_noteNames[((v%12)+12)%12]}
+const SCALE_INTERVALS={'major':[0,2,4,5,7,9,11],'minor':[0,2,3,5,7,8,10],'harmonic_minor':[0,2,3,5,7,8,11],'melodic_minor':[0,2,3,5,7,9,11],'dorian':[0,2,3,5,7,9,10],'phrygian':[0,1,3,5,7,8,10],'lydian':[0,2,4,6,7,9,11],'mixolydian':[0,2,4,5,7,9,10],'harmonic_major':[0,2,4,5,7,8,11],'lydian_dominant':[0,2,4,6,7,9,10]};function vl_getScale(root,type){const rootPc=vl_pc(root);const typeKey=type.toLowerCase().replace(/ /g,'_');let intervals=SCALE_INTERVALS[typeKey];if(!intervals&&typeKey==='minor')intervals=SCALE_INTERVALS.natural_minor;if(!intervals)intervals=SCALE_INTERVALS.major;const scalePcs=intervals.map(interval=>(rootPc+interval)%12);return scalePcs.map(pc=>vl_nameFromPc(pc))}
+function buildQuartalChord(rootNote,scaleSpec,count){if(!rootNote)throw new Error('rootNote required');if(!scaleSpec)throw new Error('scaleSpec required');if(!Number.isInteger(count)||count<=0)throw new Error('count must be a positive integer');const rn=vl_normalize(rootNote);let scaleRoot=rn;let scaleType=String(scaleSpec).trim();const tokens=scaleType.split(/\s+/).filter(Boolean);if(tokens.length>1&&vl_pc(tokens[0])!==-1){scaleRoot=vl_normalize(tokens[0]);scaleType=tokens.slice(1).join(' ')}
+const scaleNotes=vl_getScale(scaleRoot,scaleType);if(!scaleNotes)throw new Error(`unknown scale: ${scaleRoot} ${scaleType}`);const inputPc=vl_pc(rn);const startIdx=scaleNotes.findIndex(s=>vl_pc(s)===inputPc);if(startIdx===-1)throw new Error(`${rootNote} is not diatonic to ${scaleRoot} ${scaleType}`);const chord=[];let idx=startIdx;for(let i=0;i<count;i++){chord.push(scaleNotes[idx%scaleNotes.length]);idx+=3}
+return chord}
+function getDiatonicTriadQuality(triadRootNote,scaleRoot,scaleType){const scaleNotes=vl_getScale(scaleRoot,scaleType);if(!scaleNotes)throw new Error(`Invalid scale: ${scaleRoot} ${scaleType}`);const rootNorm=vl_normalize(triadRootNote);const inputPc=vl_pc(rootNorm);const rootIdx=scaleNotes.findIndex(s=>vl_pc(s)===inputPc);if(rootIdx===-1)throw new Error(`${triadRootNote} is not in scale ${scaleRoot} ${scaleType}`);const triadNotes=[scaleNotes[rootIdx],scaleNotes[(rootIdx+2)%scaleNotes.length],scaleNotes[(rootIdx+4)%scaleNotes.length]];const triadPcs=triadNotes.map(vl_pc);const rootPc=triadPcs[0];const intervals=triadPcs.map(pc=>((pc-rootPc+12)%12));intervals.sort((a,b)=>a-b);const intervalsStr=JSON.stringify(intervals);if(intervalsStr===JSON.stringify([0,4,7]))return'maj';if(intervalsStr===JSON.stringify([0,3,7]))return'min';if(intervalsStr===JSON.stringify([0,3,6]))return'dim';return'maj'}
+function buildTBN_I_Chord(bassNote,scaleRoot,scaleType){const scaleNotes=vl_getScale(scaleRoot,scaleType);if(!scaleNotes)throw new Error(`Invalid scale: ${scaleRoot} ${scaleType}`);const bassNorm=vl_normalize(bassNote);const bassInputPc=vl_pc(bassNorm);const bassIdx=scaleNotes.findIndex(s=>vl_pc(s)===bassInputPc);if(bassIdx===-1)throw new Error(`${bassNote} is not in scale ${scaleRoot} ${scaleType}`);const thirdOf7thIdx=(bassIdx+2)%scaleNotes.length;const triadRootIdx=(bassIdx+4)%scaleNotes.length;const triadRoot=scaleNotes[triadRootIdx];const triadQuality=getDiatonicTriadQuality(triadRoot,scaleRoot,scaleType);const triad3rdIdx=(triadRootIdx+2)%scaleNotes.length;const triad5thIdx=(triadRootIdx+4)%scaleNotes.length;const triadRootNote=scaleNotes[triadRootIdx];const triad3rdNote=scaleNotes[triad3rdIdx];const triad5thNote=scaleNotes[triad5thIdx];const bassPc=vl_pc(bassNote);const triad3rdPc=vl_pc(triad3rdNote);const triadRootPc=vl_pc(triadRootNote);const triad5thPc=vl_pc(triad5thNote);const finalChordPcs=[bassPc,triadRootPc,triad3rdPc,triad5thPc];return finalChordPcs}
+try{const chord1=buildQuartalChord('C','C major',3)}catch(error){console.error("שגיאה בבדיקה 1:",error.message)}
+try{const chord2=buildQuartalChord('D','C major',4)}catch(error){console.error("שגיאה בבדיקה 2:",error.message)}
+try{const chord3=buildQuartalChord('G','G minor',3)}catch(error){console.error("שגיאה בבדיקה 3:",error.message)}
+try{const chord4=buildQuartalChord('G','G harmonic minor',3)}catch(error){console.error("שגיאה בבדיקה 4:",error.message)}
+function buildShellChord(rootNote,scaleRoot,scaleType){const scaleNotes=vl_getScale(scaleRoot,scaleType);if(!scaleNotes)throw new Error(`Invalid scale`);const rootNorm=vl_normalize(rootNote);const rootPc=vl_pc(rootNorm);const rootIdx=scaleNotes.findIndex(s=>vl_pc(s)===rootPc);if(rootIdx===-1)throw new Error(`${rootNote} is not in scale`);const p1=vl_pc(scaleNotes[(rootIdx+0)%7]);const p3=vl_pc(scaleNotes[(rootIdx+2)%7]);const p7=vl_pc(scaleNotes[(rootIdx+6)%7]);return[p1,p3,p7]}
+function buildSpreadClusterChord(rootNote,scaleRoot,scaleType){const scaleNotes=vl_getScale(scaleRoot,scaleType);if(!scaleNotes)throw new Error(`Invalid scale`);const rootNorm=vl_normalize(rootNote);const rootPc=vl_pc(rootNorm);const rootIdx=scaleNotes.findIndex(s=>vl_pc(s)===rootPc);if(rootIdx===-1)throw new Error(`${rootNote} is not in scale`);const p1=vl_pc(scaleNotes[(rootIdx+0)%7]);const p2=vl_pc(scaleNotes[(rootIdx+1)%7]);const p3=vl_pc(scaleNotes[(rootIdx+2)%7]);const p7=vl_pc(scaleNotes[(rootIdx+6)%7]);return[p1,p2,p3,p7]}
+function buildTBN_II_Chord(bassNote,scaleRoot,scaleType){const scaleNotes=vl_getScale(scaleRoot,scaleType);if(!scaleNotes)throw new Error(`Invalid scale: ${scaleRoot} ${scaleType}`);const bassNorm=vl_normalize(bassNote);const bassInputPc=vl_pc(bassNorm);const bassIdx=scaleNotes.findIndex(s=>vl_pc(s)===bassInputPc);if(bassIdx===-1)throw new Error(`${bassNote} is not in scale ${scaleRoot} ${scaleType}`);const p1=vl_pc(scaleNotes[(bassIdx+0)%7]);const p2=vl_pc(scaleNotes[(bassIdx+1)%7]);const p4=vl_pc(scaleNotes[(bassIdx+3)%7]);const p7=vl_pc(scaleNotes[(bassIdx+6)%7]);return[p1,p2,p4,p7]}
+function vl_identifyChord(notes){const pcs=[...new Set(notes.map(vl_normalize).filter(Boolean).map(vl_pc).filter(v=>v>=0))].sort((a,b)=>a-b);if(pcs.length<3)return null;for(const rootName of vl_noteNames){const r=vl_pc(rootName);for(const type in vl_chordStructures){const structure=vl_chordStructures[type];const chordPc=structure.map(i=>((r+i)%12+12)%12).sort((a,b)=>a-b);if(chordPc.length===pcs.length&&chordPc.every((v,i)=>v===pcs[i])){return{root:rootName,type,notes:chordPc.map(vl_nameFromPc)}}}}
+return null}
+function vl_indicesInScale(pcVal,scalePcs){const res=[];for(let i=0;i<scalePcs.length;i++){if(((scalePcs[i]%12)+12)%12===((pcVal%12)+12)%12)res.push(i);}return res}
+function vl_findClosestInDirection(startRaw,targetPcs,dir,thresholdSteps,usedSet,scalePcs){const startPc=vl_pc(startRaw);if(startPc<0)return null;const startIdxs=vl_indicesInScale(startPc,scalePcs);const sIdxCandidates=startIdxs.length?startIdxs:[0];let best=null,bestSteps=Infinity;for(const tpc of targetPcs){if(usedSet.has(tpc))continue;const tIdxs=vl_indicesInScale(tpc,scalePcs);const tIdxCandidates=tIdxs.length?tIdxs:[0];for(const si of sIdxCandidates){for(const ti of tIdxCandidates){for(let k=-1;k<=1;k++){const stepsUp=(ti-si)+k*7;const stepsDown=-stepsUp;if(dir===1&&stepsUp>0&&stepsUp<=thresholdSteps&&stepsUp<bestSteps){bestSteps=stepsUp;best=tpc}else if(dir===-1&&stepsDown>0&&stepsDown<=thresholdSteps&&stepsDown<bestSteps){bestSteps=stepsDown;best=tpc}else if(dir===0){const absSteps=Math.abs(stepsUp);if(absSteps<=thresholdSteps&&absSteps<bestSteps){bestSteps=absSteps;best=tpc}}}}}}
+if(best===null&&dir!==0){for(const tpc of targetPcs){if(usedSet.has(tpc))continue;if(((tpc%12)+12)%12===((startPc%12)+12)%12){best=tpc;break}}}
+return best}
+function vl_mapVoices(inputVoices,nextChordPcs,dir,vlThresholdSteps,frozenPcsSet,scalePcs,specificRules,ruleContext,explicitBassPc){const assigned=new Array(inputVoices.length).fill(null);const used=new Set();for(let i=0;i<inputVoices.length;i++){const raw=inputVoices[i];const vpc=vl_pc(raw);if(vpc>=0&&frozenPcsSet&&frozenPcsSet.has(vpc)){if(nextChordPcs.includes(vpc)&&!used.has(vpc)){assigned[i]=vpc;used.add(vpc);continue}
+const pick=vl_findClosestInDirection(raw,nextChordPcs,0,7,used,scalePcs);if(pick!==null){assigned[i]=pick;used.add(pick)}}}
+if(specificRules&&scalePcs&&scalePcs.length){let activeRules=specificRules;if(ruleContext!==undefined&&specificRules[ruleContext]){activeRules=specificRules[ruleContext]}
+const bassPc=(explicitBassPc!==undefined&&explicitBassPc!==null)?explicitBassPc:vl_pc(inputVoices[0]);let bassScaleIdx=-1;const bIndices=vl_indicesInScale(bassPc,scalePcs);if(bIndices&&bIndices.length>0)bassScaleIdx=bIndices[0];if(bassScaleIdx!==-1){for(let i=0;i<inputVoices.length;i++){if(assigned[i]!==null)continue;const raw=inputVoices[i];const vpc=vl_pc(raw);if(vpc<0)continue;const scaleIdxs=vl_indicesInScale(vpc,scalePcs);if(!scaleIdxs||scaleIdxs.length===0)continue;for(const si of scaleIdxs){const relativeDegree=((si-bassScaleIdx)%7+7)%7+1;const rule=activeRules[relativeDegree];if(!rule)continue;const targetDegIdx=((si+rule.move)%7+7)%7;const targetPc=scalePcs[targetDegIdx];if(nextChordPcs.includes(targetPc)&&!used.has(targetPc)){assigned[i]=targetPc;used.add(targetPc);break}}}}}
+for(let i=0;i<inputVoices.length;i++){if(assigned[i]!==null)continue;const raw=inputVoices[i];const pick=vl_findClosestInDirection(raw,nextChordPcs,dir,vlThresholdSteps,used,scalePcs);if(pick!==null){assigned[i]=pick;used.add(pick)}}
+for(let i=0;i<assigned.length;i++){if(assigned[i]===null){const available=nextChordPcs.filter(p=>!used.has(p));if(available.length>0){assigned[i]=available[0];used.add(available[0])}}}
+return assigned.filter(v=>v!==null)}
+function applyVoicingTransformation(pitchClasses,voicingType,scaleRoot,scaleType){if(!pitchClasses||!Array.isArray(pitchClasses))return pitchClasses;if(!voicingType||voicingType==='default_close')return pitchClasses;if(voicingType==='drop3'){return transformToDrop3(pitchClasses,scaleRoot,scaleType)}
+if(voicingType==='drop2'){return transformToDrop2(pitchClasses,scaleRoot,scaleType)}
+return pitchClasses}
+function transformToDrop3(pitchClasses,scaleRoot,scaleType){try{if(!pitchClasses||!Array.isArray(pitchClasses))return pitchClasses;const pcs=pitchClasses.slice();if(pcs.length<3)return pcs;const uniquePcs=pcs.map(p=>((p%12)+12)%12);const indexed=uniquePcs.map((v,i)=>({v,i,orig:pcs[i]}));indexed.sort((a,b)=>a.v-b.v||a.i-b.i);const sorted=indexed.map(x=>x.v);const idxToDrop=Math.max(0,sorted.length-2);if(sorted.length<3)return pcs;const droppedPc=sorted.splice(idxToDrop,1)[0];const transformed=[...sorted,droppedPc];return transformed}catch(e){console.error('transformToDrop3 failed',e);return pitchClasses}}
+function transformToDrop2(pitchClasses){try{if(!pitchClasses||!Array.isArray(pitchClasses))return pitchClasses;const pcs=pitchClasses.slice();if(pcs.length<3)return pcs;if(pcs.length>=4){const bass=pcs[0];const rest=pcs.slice(1,4);const uniq=new Set(pcs.map(p=>((p%12)+12)%12));if(uniq.size>=3){const transformed=[pcs[2],pcs[3]||pcs[2],pcs[1]||pcs[2],pcs[0]];return transformed}}
+const normalized=pcs.map(p=>((p%12)+12)%12);const indexed=normalized.map((v,i)=>({v,i,orig:pcs[i]}));indexed.sort((a,b)=>a.v-b.v||a.i-b.i);const sorted=indexed.map(x=>x.v);const idxToDrop=Math.max(0,sorted.length-2);const dropped=sorted.splice(idxToDrop,1)[0];const transformed=[dropped,...sorted];return transformed}catch(e){console.error('transformToDrop2 failed',e);return pitchClasses}}
+function vl_diatonicChordPcs(scaleRoot,scaleType,degree,chordFamily='7th'){const scale=vl_getScale(scaleRoot,scaleType);if(!scale)return null;const idx=(degree-1+7)%7;let chordType;if(chordFamily==='triad'){const map=vl_diatonicTriads[scaleType];if(!map)return null;chordType=map[idx]}else{const map=vl_diatonicChords[scaleType];if(!map)return null;chordType=map[idx]}
+const structure=vl_chordStructures[chordType];if(!structure)return null;const rootPc=vl_pc(scale[idx]);return structure.map(i=>((rootPc+i)%12+12)%12)}
+function setNoteInputsFromArray(arr){for(let i=0;i<4;i++){const el=noteInputs[i];if(!el)continue;el.value=arr[i]!==undefined&&arr[i]!==null?arr[i]:''}}
+function runPredict(harmonicDirection){const prePredictSnapshot=noteInputs.map(n=>n.value||'');let tbnCurrentBassDegree=null;const scaleRoot=scaleRootEl.value||'C';const scaleType=(scaleTypeEl.value||'major').toLowerCase();const cycleVal=parseInt(cycleEl.value,10)||1;const vlInterval=5;const vlDir=vlDirState;const inputVoices=noteInputs.map(n=>vl_normalize(n.value));const chordTypeVal=(document.getElementById('chordTypeSelect')||document.getElementById('chordType'))?((document.getElementById('chordTypeSelect')||document.getElementById('chordType')).value||'triadic_7th'):'triadic_7th';let chordIdent=null;let chordFamily='7th';let targetDegree=null;let scale=vl_getScale(scaleRoot,scaleType);if(chordTypeVal==='triadic_7th'){chordIdent=vl_identifyChord(inputVoices);if(!chordIdent){optionNumberElement.textContent='Error: cannot identify current chord.';return}
+if(harmonicDirection===1){try{const hasValue=prePredictSnapshot.some(v=>v&&String(v).trim()!=='');const last=predictHistory.length?predictHistory[predictHistory.length-1]:null;const isDuplicate=last&&JSON.stringify(last)===JSON.stringify(prePredictSnapshot);if(hasValue&&!isDuplicate){predictHistory.push(prePredictSnapshot);if(predictHistory.length>MAX_HISTORY)predictHistory.shift();if(predictPrevBtn)predictPrevBtn.disabled=!1}}catch(e){}}
+if(!scale){optionNumberElement.textContent='Error: invalid scale';return}
+const curRootPc=vl_pc(chordIdent.root);let curDegreeIndex=scale.map(vl_pc).indexOf(curRootPc);if(curDegreeIndex===-1){optionNumberElement.textContent='Error: starting chord root not in scale.';return}
+const struct=vl_chordStructures[chordIdent.type];chordFamily=(struct&&struct.length===3)?'triad':'7th';targetDegree=((curDegreeIndex+(cycleVal*harmonicDirection))%7+7)%7+1}else if(chordTypeVal==='3_part_4ths'||chordTypeVal==='4_part_4ths'){const inputNormalized=noteInputs.map(n=>vl_normalize(n.value)).filter(Boolean);if(!inputNormalized||inputNormalized.length===0){optionNumberElement.textContent='Error: no input notes to infer base note.';return}
+scale=vl_getScale(scaleRoot,scaleType);if(!scale){optionNumberElement.textContent='Error: invalid scale';return}
+let baseDegreeIndex=-1;const inputPcs=inputNormalized.map(vl_pc).filter(v=>v>=0);if(vl_lastQuartalBaseDegree!==null&&vl_lastQuartalNames&&vl_lastQuartalNames.length){const lastPcs=vl_lastQuartalNames.map(vl_pc).filter(v=>v>=0);const isSubset=inputPcs.length>0&&inputPcs.every(p=>lastPcs.includes(p));if(isSubset){baseDegreeIndex=vl_lastQuartalBaseDegree}}
+if(baseDegreeIndex===-1){const baseNote=vl_normalize(noteInputs[0].value)||inputNormalized[0];const basePc=vl_pc(baseNote);baseDegreeIndex=scale.map(vl_pc).indexOf(basePc);if(baseDegreeIndex===-1){baseDegreeIndex=scale.findIndex(s=>vl_normalize(s).toUpperCase()===vl_normalize(baseNote).toUpperCase())}
+if(baseDegreeIndex===-1){baseDegreeIndex=0}
+vl_lastQuartalBaseDegree=baseDegreeIndex;vl_lastQuartalNames=null}
+const targetBaseDegree=((baseDegreeIndex+(cycleVal*harmonicDirection))%7+7)%7;if(harmonicDirection===1){try{const hasValue=prePredictSnapshot.some(v=>v&&String(v).trim()!=='');const last=predictHistory.length?predictHistory[predictHistory.length-1]:null;const isDuplicate=last&&JSON.stringify(last)===JSON.stringify(prePredictSnapshot);if(hasValue&&!isDuplicate){predictHistory.push(prePredictSnapshot);if(predictHistory.length>MAX_HISTORY)predictHistory.shift();if(predictPrevBtn)predictPrevBtn.disabled=!1}}catch(e){}}
+targetDegree=targetBaseDegree+1;chordIdent={root:scale[targetBaseDegree],type:(chordTypeVal==='3_part_4ths'?'quartal-3':'quartal-4')}}else if(chordTypeVal==='tbn_1'){const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){const pc=vl_pc(noteInputs[i].value);if(pc>=0)currentInputPcs.push(pc);}}
+let detectedBaseIdx=-1;if(scale&&scale.length===7&&currentInputPcs.length>=3){for(let d=0;d<7;d++){const bassPc=vl_pc(scale[d]);const triadRootIdx=(d+4)%7;const chordPcs=[bassPc,vl_pc(scale[triadRootIdx]),vl_pc(scale[(triadRootIdx+2)%7]),vl_pc(scale[(triadRootIdx+4)%7])];const isMatch=currentInputPcs.every(pc=>chordPcs.includes(pc));if(isMatch){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'TBN I'}}else if(chordTypeVal==='tbn_2'){const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){const pc=vl_pc(noteInputs[i].value);if(pc>=0)currentInputPcs.push(pc);}}
+let detectedBaseIdx=-1;if(scale&&scale.length===7&&currentInputPcs.length>=3){for(let d=0;d<7;d++){const p1=vl_pc(scale[d]);const p2=vl_pc(scale[(d+1)%7]);const p4=vl_pc(scale[(d+3)%7]);const p7=vl_pc(scale[(d+6)%7]);const chordPcs=[p1,p2,p4,p7];const isMatch=currentInputPcs.every(pc=>chordPcs.includes(pc));if(isMatch){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'TBN II'}}else if(chordTypeVal==='shell'){let detectedBaseIdx=-1;const currentInputPcs=inputVoices.map(vl_pc).filter(v=>v>=0);if(scale&&scale.length===7&&currentInputPcs.length>=2){for(let d=0;d<7;d++){const p1=vl_pc(scale[d]);const p3=vl_pc(scale[(d+2)%7]);const p7=vl_pc(scale[(d+6)%7]);const theoretical=[p1,p3,p7];if(currentInputPcs.every(pc=>theoretical.includes(pc))){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'Shell'}}else if(chordTypeVal==='spread_clusters'){let detectedBaseIdx=-1;const currentInputPcs=inputVoices.map(vl_pc).filter(v=>v>=0);const scalePcs=scale.map(vl_pc);if(scalePcs.length===7&&currentInputPcs.length>=3){for(let d=0;d<7;d++){const p1=scalePcs[d];const p2=scalePcs[(d+1)%7];const p3=scalePcs[(d+2)%7];const p7=scalePcs[(d+6)%7];const theoretical=[p1,p2,p3,p7];if(currentInputPcs.every(pc=>theoretical.includes(pc))){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'Spread Cluster'};if(harmonicDirection===1){try{const hasValue=prePredictSnapshot.some(v=>v);if(hasValue){predictHistory.push(prePredictSnapshot);if(predictPrevBtn)predictPrevBtn.disabled=!1}}catch(e){}}}else{optionNumberElement.textContent='Error: unknown chord type selection.';return}
+const chordTypeVal2=(document.getElementById('chordTypeSelect')||document.getElementById('chordType'))?((document.getElementById('chordTypeSelect')||document.getElementById('chordType')).value||'triadic_7th'):'triadic_7th';let nextChordPcs=null;let quartalNamesOutside=null;if(chordTypeVal2==='triadic_7th'){nextChordPcs=vl_diatonicChordPcs(scaleRoot,scaleType,targetDegree,chordFamily);if(!nextChordPcs){optionNumberElement.textContent='Error building target chord.';return}}else if(chordTypeVal2==='3_part_4ths'||chordTypeVal2==='4_part_4ths'){try{const scaleNotes=scale;const rootNoteForTarget=scaleNotes[(targetDegree-1+7)%7];const scaleSpec=`${scaleRoot} ${scaleType}`;const count=(chordTypeVal2==='3_part_4ths')?3:4;const quartalNames=buildQuartalChord(rootNoteForTarget,scaleSpec,count);quartalNamesOutside=quartalNames;try{vl_lastQuartalBaseDegree=(targetDegree-1+7)%7;vl_lastQuartalNames=quartalNamesOutside.slice()}catch(e){}
+nextChordPcs=quartalNames.map(n=>vl_pc(n)).filter(v=>v>=0);if(!nextChordPcs||nextChordPcs.length===0){optionNumberElement.textContent='Error building quartal chord.';return}}catch(err){optionNumberElement.textContent=`Error building quartal chord: ${err && err.message ? err.message : String(err)}`;return}}else if(chordTypeVal2==='tbn_1'){try{const scaleNotes=scale;const targetBaseNote=scaleNotes[(targetDegree-1+7)%7];nextChordPcs=buildTBN_I_Chord(targetBaseNote,scaleRoot,scaleType);if(!nextChordPcs||nextChordPcs.length===0){optionNumberElement.textContent='Error building TBN I chord.';return}}catch(err){optionNumberElement.textContent=`Error building TBN I chord: ${err.message}`;return}}else if(chordTypeVal2==='tbn_2'){try{const scaleNotes=scale;const targetBaseNote=scaleNotes[(targetDegree-1+7)%7];nextChordPcs=buildTBN_II_Chord(targetBaseNote,scaleRoot,scaleType);if(!nextChordPcs||nextChordPcs.length===0){optionNumberElement.textContent='Error building TBN II chord.';return}}catch(err){optionNumberElement.textContent=`Error: ${err.message}`;return}}else{nextChordPcs=vl_diatonicChordPcs(scaleRoot,scaleType,targetDegree,chordFamily);if(!nextChordPcs){optionNumberElement.textContent='Error building target chord.';return}}
+const selectedVoicingType=(document.getElementById('voicingTypeSelect')||voicingTypeEl)?((document.getElementById('voicingTypeSelect')||voicingTypeEl).value||'default_close'):'default_close';try{nextChordPcs=applyVoicingTransformation(nextChordPcs,selectedVoicingType,scaleRoot,scaleType)||nextChordPcs}catch(e){console.error('Voicing transform failed',e)}
+if(!(chordTypeVal2==='3_part_4ths'||chordTypeVal2==='4_part_4ths'||chordTypeVal2==='tbn_1')){vl_lastQuartalBaseDegree=null;vl_lastQuartalNames=null;vl_lastTBN_BassDegree=null;vl_lastTBN_BassNoteName=null}
+if(chordTypeVal2==='3_part_4ths'||chordTypeVal2==='4_part_4ths'){vl_lastTBN_BassDegree=null;vl_lastTBN_BassNoteName=null}else if(chordTypeVal2==='tbn_1'){vl_lastQuartalBaseDegree=null;vl_lastQuartalNames=null}
+const startPcs=inputVoices.map(vl_pc).filter(v=>v>=0);const nextSet=new Set(nextChordPcs);const autoFrozenSet=new Set(startPcs.filter(p=>nextSet.has(p)));const combinedFrozenSet=new Set([...autoFrozenSet]);const scalePcs=scale.map(vl_pc);const activeInputVoices=inputVoices.filter(v=>v&&v.length>0);let mappedPcs=null,finalNames=[];if(chordTypeVal2==='tbn_1'){if(harmonicDirection===1){try{const prePredictSnapshot=noteInputs.map(n=>n.value||'');const hasValue=prePredictSnapshot.some(v=>v&&String(v).trim()!=='');const last=predictHistory.length?predictHistory[predictHistory.length-1]:null;const isDuplicate=last&&JSON.stringify(last)===JSON.stringify(prePredictSnapshot);if(hasValue&&!isDuplicate){predictHistory.push(prePredictSnapshot);if(predictHistory.length>MAX_HISTORY)predictHistory.shift();if(predictPrevBtn)predictPrevBtn.disabled=!1}}catch(e){}}
+let detectedBaseIdx=-1;const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){currentInputPcs.push(vl_pc(noteInputs[i].value))}}
+if(scalePcs&&scalePcs.length===7&&currentInputPcs.length>=3){for(let d=0;d<7;d++){const bassPc=scalePcs[d];const triadRootIdx=(d+4)%7;const chordPcs=[bassPc,scalePcs[triadRootIdx],scalePcs[(triadRootIdx+2)%7],scalePcs[(triadRootIdx+4)%7]];if(currentInputPcs.every(pc=>chordPcs.includes(pc))){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;mappedPcs=[null,null,null,null];for(let i=0;i<4;i++){const inputVal=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const pc=vl_pc(inputVal);if(pc===-1){mappedPcs[i]=pc;continue}
+const idxs=vl_indicesInScale(pc,scalePcs);if(idxs.length===0){mappedPcs[i]=pc;continue}
+const currentNoteIdx=idxs[0];const roleOffset=(currentNoteIdx-detectedBaseIdx+7)%7;let targetRoleOffset=roleOffset;if(cycleVal===1||cycleVal===2){if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===1)targetRoleOffset=0;else if(roleOffset===4)targetRoleOffset=1;else if(roleOffset===6)targetRoleOffset=4}else if(cycleVal===3||cycleVal===4){if(roleOffset===0)targetRoleOffset=4;else if(roleOffset===1)targetRoleOffset=6;else if(roleOffset===4)targetRoleOffset=0;else if(roleOffset===6)targetRoleOffset=1}else if(cycleVal===5||cycleVal===6){if(roleOffset===0)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=4;else if(roleOffset===4)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=0}
+const finalTargetIdx=(targetBaseIdx+targetRoleOffset)%7;mappedPcs[i]=scalePcs[finalTargetIdx]}
+finalNames=mappedPcs.map(p=>(p!==null)?vl_nameFromPc(p):'');targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'TBN I'}}else if(chordTypeVal2==='tbn_2'){if(harmonicDirection===1){try{const prePredictSnapshot=noteInputs.map(n=>n.value||'');const hasValue=prePredictSnapshot.some(v=>v&&String(v).trim()!=='');const last=predictHistory.length?predictHistory[predictHistory.length-1]:null;const isDuplicate=last&&JSON.stringify(last)===JSON.stringify(prePredictSnapshot);if(hasValue&&!isDuplicate){predictHistory.push(prePredictSnapshot);if(predictHistory.length>MAX_HISTORY)predictHistory.shift();if(predictPrevBtn)predictPrevBtn.disabled=!1}}catch(e){}}
+let detectedBaseIdx=-1;const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){const pc=vl_pc(noteInputs[i].value);if(pc>=0)currentInputPcs.push(pc);}}
+if(scalePcs&&scalePcs.length===7&&currentInputPcs.length>=3){for(let d=0;d<7;d++){const p1=scalePcs[d];const p2=scalePcs[(d+1)%7];const p4=scalePcs[(d+3)%7];const p7=scalePcs[(d+6)%7];const chordPcs=[p1,p2,p4,p7];if(currentInputPcs.every(pc=>chordPcs.includes(pc))){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;mappedPcs=[null,null,null,null];for(let i=0;i<4;i++){const inputVal=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const pc=vl_pc(inputVal);if(pc===-1){mappedPcs[i]=pc;continue}
+const idxs=vl_indicesInScale(pc,scalePcs);if(idxs.length===0){mappedPcs[i]=pc;continue}
+const currentNoteIdx=idxs[0];const roleOffset=(currentNoteIdx-detectedBaseIdx+7)%7;let targetRoleOffset=roleOffset;if(cycleVal===3||cycleVal===4){if(roleOffset===0)targetRoleOffset=3;else if(roleOffset===3)targetRoleOffset=0;else if(roleOffset===1)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=1}else if(cycleVal===5||cycleVal===6){if(roleOffset===0)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=3;else if(roleOffset===3)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=0}else{if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=3;else if(roleOffset===3)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=0}
+const finalTargetIdx=(targetBaseIdx+targetRoleOffset)%7;mappedPcs[i]=scalePcs[finalTargetIdx]}
+finalNames=mappedPcs.map(p=>(p!==null)?vl_nameFromPc(p):'');targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'TBN II'}}else if(chordTypeVal2==='shell'){if(harmonicDirection===1){try{const prePredictSnapshot=noteInputs.map(n=>n.value||'');if(prePredictSnapshot.some(v=>v)){predictHistory.push(prePredictSnapshot);if(predictHistory.length>MAX_HISTORY)predictHistory.shift();if(predictPrevBtn)predictPrevBtn.disabled=!1}}catch(e){}}
+let detectedBaseIdx=-1;const currentInputPcs=inputVoices.map(vl_pc).filter(v=>v>=0);if(scalePcs&&scalePcs.length===7&&currentInputPcs.length>=2){for(let d=0;d<7;d++){const p1=scalePcs[d];const p3=scalePcs[(d+2)%7];const p7=scalePcs[(d+6)%7];const theoretical=[p1,p3,p7];if(currentInputPcs.every(pc=>theoretical.includes(pc))){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'Shell'};nextChordPcs=buildShellChord(scale[targetBaseIdx],scaleRoot,scaleType);mappedPcs=[null,null,null,null];for(let i=0;i<4;i++){const inputVal=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const pc=vl_pc(inputVal);if(pc===-1){mappedPcs[i]=null;continue}
+const idxs=vl_indicesInScale(pc,scalePcs);if(idxs.length===0){mappedPcs[i]=pc;continue}
+const currentNoteIdx=idxs[0];const roleOffset=(currentNoteIdx-detectedBaseIdx+7)%7;let targetRoleOffset=roleOffset;if(cycleVal===3||cycleVal===4){if(roleOffset===0)targetRoleOffset=0;else if(roleOffset===2)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=2}else{}
+const finalTargetIdx=(targetBaseIdx+targetRoleOffset)%7;mappedPcs[i]=scalePcs[finalTargetIdx]}
+finalNames=mappedPcs.map(p=>(p!==null)?vl_nameFromPc(p):'')}else if(chordTypeVal2==='spread_clusters'){let detectedBaseIdx=-1;const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){currentInputPcs.push(vl_pc(noteInputs[i].value))}}
+if(scalePcs&&scalePcs.length===7&&currentInputPcs.length>=3){for(let d=0;d<7;d++){const p1=scalePcs[d];const p2=scalePcs[(d+1)%7];const p3=scalePcs[(d+2)%7];const p7=scalePcs[(d+6)%7];const theoretical=[p1,p2,p3,p7];if(currentInputPcs.every(pc=>theoretical.includes(pc))){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const currentRoles=[];let isValid=!0;for(let i=0;i<4;i++){const val=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const pc=vl_pc(val);if(pc===-1){isValid=!1;currentRoles.push(-1);continue}
+const idxs=vl_indicesInScale(pc,scalePcs);if(!idxs.length){isValid=!1;currentRoles.push(-1);continue}
+currentRoles.push((idxs[0]-detectedBaseIdx+7)%7)}
+if(vl_spreadClusterMode===null&&isValid){const r=currentRoles;const isDrop2Start=(r[0]===0&&r[1]===2&&r[2]===6&&r[3]===1);const isDrop2Next=(r[0]===6&&r[1]===1&&r[2]===2&&r[3]===0);const isDrop2C7_1=(r[0]===1&&r[1]===6&&r[2]===0&&r[3]===2);const isDrop2C7_2=(r[0]===2&&r[1]===0&&r[2]===1&&r[3]===6);const isDrop3Start=(r[0]===0&&r[1]===6&&r[2]===1&&r[3]===2);const isDrop3Next=(r[0]===6&&r[1]===2&&r[2]===0&&r[3]===1);const isDrop3C7_1=(r[0]===1&&r[1]===0&&r[2]===2&&r[3]===6);const isDrop3C7_2=(r[0]===2&&r[1]===1&&r[2]===6&&r[3]===0);const isDrop24Start=(r[0]===0&&r[1]===2&&r[2]===1&&r[3]===6);const isDrop24Next=(r[0]===6&&r[1]===1&&r[2]===0&&r[3]===2);const isDrop24C7_1=(r[0]===1&&r[1]===6&&r[2]===2&&r[3]===0);const isDrop24C7_2=(r[0]===2&&r[1]===0&&r[2]===6&&r[3]===1);const isDD2D3Start=(r[0]===0&&r[1]===6&&r[2]===2&&r[3]===1);const isDD2D3Next=(r[0]===6&&r[1]===2&&r[2]===1&&r[3]===0);const isDD2D3C7_1=(r[0]===1&&r[1]===0&&r[2]===6&&r[3]===2);const isDD2D3C7_2=(r[0]===2&&r[1]===1&&r[2]===0&&r[3]===6);const isDrop23Start=(r[0]===0&&r[1]===1&&r[2]===6&&r[3]===2);const isDrop23Next=(r[0]===6&&r[1]===0&&r[2]===2&&r[3]===1);const isDrop23C7_1=(r[0]===1&&r[1]===2&&r[2]===0&&r[3]===6);const isDrop23C7_2=(r[0]===2&&r[1]===6&&r[2]===1&&r[3]===0);const isCloseStart=(r[0]===0&&r[1]===1&&r[2]===2&&r[3]===6);const isCloseNext=(r[0]===1&&r[1]===0&&r[2]===6&&r[3]===2);const isCloseC6_1=(r[0]===1&&r[1]===2&&r[2]===6&&r[3]===0);const isCloseC6_2=(r[0]===2&&r[1]===6&&r[2]===0&&r[3]===1);const isCloseC6_3=(r[0]===6&&r[1]===0&&r[2]===1&&r[3]===2);if(isDrop2Start||isDrop2Next||isDrop2C7_1||isDrop2C7_2){vl_spreadClusterMode='drop2_func'}else if(isDrop3Start||isDrop3Next||isDrop3C7_1||isDrop3C7_2){vl_spreadClusterMode='drop3_func'}else if(isDrop24Start||isDrop24Next||isDrop24C7_1||isDrop24C7_2){vl_spreadClusterMode='drop24_func'}else if(isDD2D3Start||isDD2D3Next||isDD2D3C7_1||isDD2D3C7_2){vl_spreadClusterMode='dd2d3_func'}else if(isDrop23Start||isDrop23Next||isDrop23C7_1||isDrop23C7_2){vl_spreadClusterMode='drop23_func'}else if(isCloseStart||isCloseNext||isCloseC6_1||isCloseC6_2||isCloseC6_3){vl_spreadClusterMode='close_func'}else{vl_spreadClusterMode='parallel'}}
+const targetBaseIdx=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7;targetDegree=targetBaseIdx+1;chordIdent={root:scale[targetBaseIdx],type:'Spread Cluster'};nextChordPcs=buildSpreadClusterChord(scale[targetBaseIdx],scaleRoot,scaleType);mappedPcs=[null,null,null,null];const cycleNum=parseInt(cycleVal);const isCycleSecond=(cycleNum===1);const isCycleThird=(cycleNum===2);const isCycleFourth=(cycleNum===3||cycleNum===4);const isCycleSixth=(cycleNum===5);const isCycleSeventh=(cycleNum===6);for(let i=0;i<4;i++){const inputVal=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const pc=vl_pc(inputVal);if(pc===-1){mappedPcs[i]=null;continue}
+const idxs=vl_indicesInScale(pc,scalePcs);if(idxs.length===0){mappedPcs[i]=pc;continue}
+const currentNoteIdx=idxs[0];const roleOffset=(currentNoteIdx-detectedBaseIdx+7)%7;let targetRoleOffset=roleOffset;if(isCycleFourth&&vl_spreadClusterMode!=='parallel'){if(roleOffset===0)targetRoleOffset=2;else if(roleOffset===2)targetRoleOffset=0;else if(roleOffset===1)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=1}else if(isCycleThird&&vl_spreadClusterMode!=='parallel'){if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=2;else if(roleOffset===2)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=0}else if(isCycleSixth&&vl_spreadClusterMode!=='parallel'){if(roleOffset===0)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=2;else if(roleOffset===2)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=0}else if(isCycleSeventh&&vl_spreadClusterMode!=='parallel'){if(vl_spreadClusterMode==='drop2_func'||vl_spreadClusterMode==='drop3_func'||vl_spreadClusterMode==='drop23_func'||vl_spreadClusterMode==='drop24_func'||vl_spreadClusterMode==='dd2d3_func'){if(roleOffset===0)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=2;else if(roleOffset===2)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=0}else{targetRoleOffset=roleOffset}}else if(isCycleSecond){if(vl_spreadClusterMode==='drop2_func'){if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===2)targetRoleOffset=1;else if(roleOffset===6)targetRoleOffset=2;else if(roleOffset===1)targetRoleOffset=0}else if(vl_spreadClusterMode==='drop3_func'){if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=2;else if(roleOffset===1)targetRoleOffset=0;else if(roleOffset===2)targetRoleOffset=1}else if(vl_spreadClusterMode==='drop24_func'){if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===2)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=0;else if(roleOffset===6)targetRoleOffset=2}else if(vl_spreadClusterMode==='dd2d3_func'){if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===6)targetRoleOffset=2;else if(roleOffset===2)targetRoleOffset=1;else if(roleOffset===1)targetRoleOffset=0}else if(vl_spreadClusterMode==='drop23_func'){if(roleOffset===0)targetRoleOffset=6;else if(roleOffset===1)targetRoleOffset=0;else if(roleOffset===6)targetRoleOffset=2;else if(roleOffset===2)targetRoleOffset=1}}
+const finalTargetIdx=(targetBaseIdx+targetRoleOffset)%7;mappedPcs[i]=scalePcs[finalTargetIdx]}
+finalNames=mappedPcs.map(p=>(p!==null)?vl_nameFromPc(p):'')}else{try{}catch(e){}
+if(chordTypeVal2==='4_part_4ths'&&cycleVal===3){let detectedBaseIdx=-1;const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){const pc=vl_pc(noteInputs[i].value);if(pc>=0)currentInputPcs.push(pc);}}
+if(scalePcs&&scalePcs.length===7&&currentInputPcs.length>0){for(let d=0;d<7;d++){const p1=scalePcs[d];const p4=scalePcs[(d+3)%7];const p7=scalePcs[(d+6)%7];const p3=scalePcs[(d+2)%7];const theoreticalStack=[p1,p4,p7,p3];const isMatch=currentInputPcs.every(pc=>theoreticalStack.includes(pc));if(isMatch){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const refRoot=scalePcs[detectedBaseIdx];const ref4th=scalePcs[(detectedBaseIdx+3)%7];const ref7th=scalePcs[(detectedBaseIdx+6)%7];const ref3rd=scalePcs[(detectedBaseIdx+2)%7];const referenceStack=[refRoot,ref4th,ref7th,ref3rd];const moves=[-1,0,-1,0];mappedPcs=[null,null,null,null];for(let i=0;i<4;i++){const inputNoteVal=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const inputPc=vl_pc(inputNoteVal);if(!inputNoteVal||inputPc<0){mappedPcs[i]=null;continue}
+let roleIndex=-1;for(let r=0;r<4;r++){if(((inputPc%12)+12)%12===((referenceStack[r]%12)+12)%12){roleIndex=r;break}}
+if(roleIndex!==-1){const move=moves[roleIndex];const noteScaleIndices=vl_indicesInScale(inputPc,scalePcs);const currentNoteScaleIdx=noteScaleIndices.length>0?noteScaleIndices[0]:0;const targetScaleIdx=((currentNoteScaleIdx+move)%7+7)%7;mappedPcs[i]=scalePcs[targetScaleIdx]}else{mappedPcs[i]=inputPc}}
+finalNames=mappedPcs.map(p=>(p!==null&&p!==undefined)?vl_nameFromPc(p):'');vl_lastQuartalBaseDegree=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7}else if(chordTypeVal2==='4_part_4ths'&&cycleVal===4){let detectedBaseIdx=-1;const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){const pc=vl_pc(noteInputs[i].value);if(pc>=0)currentInputPcs.push(pc);}}
+if(scalePcs&&scalePcs.length===7&&currentInputPcs.length>0){for(let d=0;d<7;d++){const p1=scalePcs[d];const p4=scalePcs[(d+3)%7];const p7=scalePcs[(d+6)%7];const p3=scalePcs[(d+2)%7];const theoreticalStack=[p1,p4,p7,p3];const isMatch=currentInputPcs.every(pc=>theoreticalStack.includes(pc));if(isMatch){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const refRoot=scalePcs[detectedBaseIdx];const ref4th=scalePcs[(detectedBaseIdx+3)%7];const ref7th=scalePcs[(detectedBaseIdx+6)%7];const ref3rd=scalePcs[(detectedBaseIdx+2)%7];const referenceStack=[refRoot,ref4th,ref7th,ref3rd];const moves=[0,1,0,1];mappedPcs=[null,null,null,null];for(let i=0;i<4;i++){const inputNoteVal=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const inputPc=vl_pc(inputNoteVal);if(!inputNoteVal||inputPc<0){mappedPcs[i]=null;continue}
+let roleIndex=-1;for(let r=0;r<4;r++){if(((inputPc%12)+12)%12===((referenceStack[r]%12)+12)%12){roleIndex=r;break}}
+if(roleIndex!==-1){const move=moves[roleIndex];const noteScaleIndices=vl_indicesInScale(inputPc,scalePcs);const currentNoteScaleIdx=noteScaleIndices.length>0?noteScaleIndices[0]:0;const targetScaleIdx=((currentNoteScaleIdx+move)%7+7)%7;mappedPcs[i]=scalePcs[targetScaleIdx]}else{mappedPcs[i]=inputPc}}
+finalNames=mappedPcs.map(p=>(p!==null&&p!==undefined)?vl_nameFromPc(p):'');vl_lastQuartalBaseDegree=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7}else if(chordTypeVal2==='3_part_4ths'&&(cycleVal===3||cycleVal===4)){let detectedBaseIdx=-1;const currentInputPcs=[];for(let i=0;i<4;i++){if(noteInputs[i]&&noteInputs[i].value){const pc=vl_pc(noteInputs[i].value);if(pc>=0)currentInputPcs.push(pc);}}
+if(scalePcs&&scalePcs.length===7&&currentInputPcs.length>0){for(let d=0;d<7;d++){const p1=scalePcs[d];const p4=scalePcs[(d+3)%7];const p7=scalePcs[(d+6)%7];const theoreticalStack=[p1,p4,p7];const isMatch=currentInputPcs.every(pc=>theoreticalStack.includes(pc));if(isMatch){detectedBaseIdx=d;break}}}
+if(detectedBaseIdx===-1)detectedBaseIdx=0;const refRoot=scalePcs[detectedBaseIdx];const ref4th=scalePcs[(detectedBaseIdx+3)%7];const ref7th=scalePcs[(detectedBaseIdx+6)%7];const referenceStack=[refRoot,ref4th,ref7th];let moves=[0,0,0];if(cycleVal===3){moves=[-1,-1,-3];try{console.log('DEBUG: Cycle 4 3-part logic activated')}catch(e){}}else{moves=[3,1,1];try{console.log('DEBUG: Cycle 5 3-part logic activated')}catch(e){}}
+mappedPcs=[null,null,null,null];for(let i=0;i<4;i++){const inputNoteVal=noteInputs[i]?vl_normalize(noteInputs[i].value):'';const inputPc=vl_pc(inputNoteVal);if(!inputNoteVal||inputPc<0){mappedPcs[i]=null;continue}
+let roleIndex=-1;for(let r=0;r<3;r++){if(((inputPc%12)+12)%12===((referenceStack[r]%12)+12)%12){roleIndex=r;break}}
+if(roleIndex!==-1){const move=moves[roleIndex];const noteScaleIndices=vl_indicesInScale(inputPc,scalePcs);const currentNoteScaleIdx=noteScaleIndices.length>0?noteScaleIndices[0]:0;const targetScaleIdx=((currentNoteScaleIdx+move)%7+7)%7;mappedPcs[i]=scalePcs[targetScaleIdx]}else{mappedPcs[i]=inputPc}}
+finalNames=mappedPcs.map(p=>(p!==null&&p!==undefined)?vl_nameFromPc(p):'');vl_lastQuartalBaseDegree=((detectedBaseIdx+(cycleVal*harmonicDirection))%7+7)%7}else{mappedPcs=vl_mapVoices(activeInputVoices,nextChordPcs,vlDir,vlInterval,combinedFrozenSet,scalePcs,null);finalNames=mappedPcs.map(vl_nameFromPc)}}
+if(chordTypeVal2==='3_part_4ths'||chordTypeVal2==='4_part_4ths'){if(finalNames&&finalNames.length){let arranged=[...finalNames];if(quartalNamesOutside&&quartalNamesOutside.length){quartalNamesOutside.forEach(q=>{if(!arranged.includes(q))arranged.push(q);})}
+const padded=[arranged[0]||'',arranged[1]||'',arranged[2]||'',arranged[3]||''];setNoteInputsFromArray(padded)}else if(quartalNamesOutside&&quartalNamesOutside.length){const padded=[quartalNamesOutside[0]||'',quartalNamesOutside[1]||'',quartalNamesOutside[2]||'',quartalNamesOutside[3]||''];setNoteInputsFromArray(padded)}else{setNoteInputsFromArray(finalNames)}}else if(chordTypeVal2==='tbn_1'){const padded=[finalNames[0]||'',finalNames[1]||'',finalNames[2]||'',finalNames[3]||''];setNoteInputsFromArray(padded)}else{setNoteInputsFromArray(finalNames)}
+allVoicings=findAndFilterVoicingsStrict();currentVoicingIndex=0;updateVoicingInfo({title:`Predicted: ${chordIdent.root} → degree ${targetDegree}`,targetDegree:`${targetDegree} (${scaleType})`,targetChordPcs:nextChordPcs,autoFrozen:Array.from(combinedFrozenSet),predictedVoicing:finalNames,currentVoicing:allVoicings&&allVoicings.length?allVoicings[0]:null});displayCurrentVoicing();playVoicing()}
+if(predictNextBtn)predictNextBtn.addEventListener('click',()=>runPredict(1));function restorePreviousInputs(){if(predictHistory.length===0){predictPrevBtn.disabled=!0;optionNumberElement.textContent='No previous chord in history';return}
+const last=predictHistory.pop();setNoteInputsFromArray(last);const chordTypeVal=(document.getElementById('chordTypeSelect')||document.getElementById('chordType')).value;if(chordTypeVal==='tbn_1'||chordTypeVal==='tbn_2'){const restoredBass=vl_normalize(last[0]);if(restoredBass){vl_lastTBN_BassNoteName=restoredBass;const scale=vl_getScale(scaleRootEl.value,scaleTypeEl.value);if(scale){const pc=vl_pc(restoredBass);vl_lastTBN_BassDegree=scale.map(vl_pc).indexOf(pc)}}}
+allVoicings=findAndFilterVoicingsStrict();currentVoicingIndex=0;displayCurrentVoicing();predictPrevBtn.disabled=predictHistory.length===0;playVoicing();optionNumberElement.textContent='Restored previous chord'}
+if(predictPrevBtn){predictPrevBtn.addEventListener('click',restorePreviousInputs);predictPrevBtn.disabled=!0}
+function generateInitialVoicing(){try{const scaleRoot=scaleRootEl.value||'C';const scaleType=(scaleTypeEl.value||'major').toLowerCase();const chordTypeVal=(document.getElementById('chordTypeSelect')||document.getElementById('chordType'))?((document.getElementById('chordTypeSelect')||document.getElementById('chordType')).value||'triadic_7th'):'triadic_7th';let initialChordPcs=null;let generatedNames=[];vl_lastQuartalBaseDegree=null;vl_lastQuartalNames=null;vl_lastTBN_BassDegree=null;vl_lastTBN_BassNoteName=null;if(chordTypeVal==='3_part_4ths'||chordTypeVal==='4_part_4ths'){const scaleSpec=`${scaleRoot} ${scaleType}`;const count=(chordTypeVal==='3_part_4ths')?3:4;generatedNames=buildQuartalChord(scaleRoot,scaleSpec,count);initialChordPcs=generatedNames.map(n=>vl_pc(n)).filter(v=>v>=0);vl_lastQuartalBaseDegree=0;vl_lastQuartalNames=generatedNames.slice()}else if(chordTypeVal==='tbn_1'){initialChordPcs=buildTBN_I_Chord(scaleRoot,scaleRoot,scaleType);generatedNames=initialChordPcs.map(vl_nameFromPc);vl_lastTBN_BassDegree=0;vl_lastTBN_BassNoteName=vl_normalize(scaleRoot)}else if(chordTypeVal==='tbn_2'){initialChordPcs=buildTBN_II_Chord(scaleRoot,scaleRoot,scaleType);generatedNames=initialChordPcs.map(vl_nameFromPc);vl_lastTBN_BassDegree=0;vl_lastTBN_BassNoteName=vl_normalize(scaleRoot)}else if(chordTypeVal==='spread_clusters'){initialChordPcs=buildSpreadClusterChord(scaleRoot,scaleRoot,scaleType);generatedNames=initialChordPcs.map(vl_nameFromPc)}else if(chordTypeVal==='shell'){initialChordPcs=buildShellChord(scaleRoot,scaleRoot,scaleType);generatedNames=initialChordPcs.map(vl_nameFromPc);vl_lastQuartalBaseDegree=null;vl_lastTBN_BassDegree=null}else{initialChordPcs=vl_diatonicChordPcs(scaleRoot,scaleType,1,'7th');generatedNames=initialChordPcs.map(vl_nameFromPc)}
+if(!initialChordPcs||initialChordPcs.length===0){optionNumberElement.textContent='Error generating initial chord.';return}
+const selectedVoicingType=(document.getElementById('voicingTypeSelect')||voicingTypeEl)?((document.getElementById('voicingTypeSelect')||voicingTypeEl).value||'default_close'):'default_close';let transformedPcs=initialChordPcs;try{transformedPcs=applyVoicingTransformation(initialChordPcs,selectedVoicingType,scaleRoot,scaleType)||initialChordPcs}catch(e){console.error('Voicing transform failed',e)}
+const finalNames=transformedPcs.map(vl_nameFromPc);setNoteInputsFromArray(finalNames);allVoicings=findAndFilterVoicingsStrict();currentVoicingIndex=0;displayCurrentVoicing();predictHistory.length=0;if(predictPrevBtn)predictPrevBtn.disabled=!0}catch(err){console.error('Error in generateInitialVoicing:',err);optionNumberElement.textContent=`Error: ${err.message}`}}
+noteInputs.forEach(el=>{if(!el)return;el.addEventListener('input',()=>{vl_spreadClusterMode=null});el.addEventListener('blur',()=>{el.value=vl_normalize(el.value)});el.addEventListener('keydown',(e)=>{if(e.key==='Enter'){el.blur();e.preventDefault()}})});function adjustCvNavForMobile(){const cvNav=document.querySelector('.cv-nav');if(window.innerWidth<=768){cvNav.style.display='flex';const predictPrev=document.getElementById('predictPrev');const predictNext=document.getElementById('predictNext');predictPrev.style.display='';predictNext.style.display='';if(cvNav&&!cvNav.contains(predictPrev)){cvNav.appendChild(predictPrev)}
+if(cvNav&&!cvNav.contains(predictNext)){cvNav.appendChild(predictNext)}}else{const currentVoicing=document.querySelector('.current-voicing');const predictPrev=document.getElementById('predictPrev');const predictNext=document.getElementById('predictNext');const cvNav=document.querySelector('.cv-nav');if(currentVoicing&&predictPrev.parentElement!==currentVoicing){currentVoicing.insertBefore(predictPrev,currentVoicing.firstChild)}
+if(currentVoicing&&predictNext.parentElement!==currentVoicing){currentVoicing.appendChild(predictNext)}
+if(cvNav)cvNav.style.display='none'}}
+window.addEventListener('resize',adjustCvNavForMobile);adjustCvNavForMobile();const helpButton=document.getElementById('help-button');const helpOverlay=document.getElementById('help-modal-overlay');const helpContent=document.getElementById('help-modal-content');const helpClose=helpContent?helpContent.querySelector('.help-close'):null;const contactButton=document.getElementById('contact-button');const contactOverlay=document.getElementById('contact-modal-overlay');const contactContent=document.getElementById('contact-modal-content');const contactClose=contactContent?contactContent.querySelector('.contact-close'):null;function openHelpModal(){if(!helpOverlay)return;helpOverlay.classList.add('open');helpOverlay.setAttribute('aria-hidden','false');if(helpContent)helpContent.focus();if(helpButton){helpButton.classList.add('open-label');helpButton.classList.remove('pulse')}}
+function closeHelpModal(){if(!helpOverlay)return;helpOverlay.classList.remove('open');helpOverlay.setAttribute('aria-hidden','true');if(helpButton)helpButton.focus();if(helpButton)helpButton.classList.remove('open-label');}
+if(helpButton)helpButton.addEventListener('click',()=>{if(helpOverlay&&helpOverlay.classList.contains('open'))closeHelpModal();else openHelpModal()});if(helpClose)helpClose.addEventListener('click',closeHelpModal);if(helpOverlay)helpOverlay.addEventListener('click',(ev)=>{if(ev.target===helpOverlay)closeHelpModal();});function openContactModal(){if(!contactOverlay)return;contactOverlay.classList.add('open');contactOverlay.setAttribute('aria-hidden','false');if(contactContent)contactContent.focus();if(contactButton){contactButton.classList.add('open-label')}}
+function closeContactModal(){if(!contactOverlay)return;contactOverlay.classList.remove('open');contactOverlay.setAttribute('aria-hidden','true');if(contactButton)contactButton.focus();if(contactButton)contactButton.classList.remove('open-label');}
+if(contactButton)contactButton.addEventListener('click',()=>{if(contactOverlay&&contactOverlay.classList.contains('open'))closeContactModal();else openContactModal()});if(contactClose)contactClose.addEventListener('click',closeContactModal);if(contactOverlay)contactOverlay.addEventListener('click',(ev)=>{if(ev.target===contactOverlay)closeContactModal();});window.addEventListener('keydown',(ev)=>{if(ev.key==='Escape'){closeHelpModal();closeContactModal();closeMobileMenu&&closeMobileMenu()}});const mobileHamburger=document.getElementById('mobile-hamburger');const mobileMenu=document.getElementById('mobile-menu');const mobileBackdrop=document.getElementById('mobile-menu-backdrop');const mobileHelpItem=document.getElementById('mobile-help-item');const mobileContactItem=document.getElementById('mobile-contact-item');function openMobileMenu(){if(!mobileMenu)return;mobileMenu.classList.add('open');mobileMenu.setAttribute('aria-hidden','false');if(mobileBackdrop)mobileBackdrop.classList.add('open');document.body.style.overflow='hidden'}
+function closeMobileMenu(){if(!mobileMenu)return;mobileMenu.classList.remove('open');mobileMenu.setAttribute('aria-hidden','true');if(mobileBackdrop)mobileBackdrop.classList.remove('open');document.body.style.overflow='';if(mobileHamburger)mobileHamburger.focus();}
+if(mobileHamburger)mobileHamburger.addEventListener('click',()=>{if(mobileMenu&&mobileMenu.classList.contains('open'))closeMobileMenu();else openMobileMenu()});if(mobileBackdrop)mobileBackdrop.addEventListener('click',closeMobileMenu);const mobileMenuCloseBtn=mobileMenu?mobileMenu.querySelector('.menu-close'):null;if(mobileMenuCloseBtn)mobileMenuCloseBtn.addEventListener('click',closeMobileMenu);if(mobileHelpItem)mobileHelpItem.addEventListener('click',()=>{closeMobileMenu();openHelpModal()});const dictItem=document.getElementById('mobile-dict-item');const dictOverlay=document.getElementById('dict-modal-overlay');const closeDict=document.getElementById('close-dict-btn');if(dictItem)dictItem.addEventListener('click',()=>{closeMobileMenu();dictOverlay.classList.add('open')});if(closeDict)closeDict.addEventListener('click',()=>dictOverlay.classList.remove('open'));if(dictOverlay)dictOverlay.addEventListener('click',(e)=>{if(e.target===dictOverlay)dictOverlay.classList.remove('open');});if(mobileContactItem)mobileContactItem.addEventListener('click',()=>{closeMobileMenu();openContactModal()});playVoicingButton.disabled=!0;playVoicingButton.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i>&nbsp;&nbsp;Loading Sounds...';setupGuitarSampler(()=>{playVoicingButton.disabled=!1;playVoicingButton.innerHTML='<i class="fa-solid fa-play"></i>&nbsp;&nbsp;Play Chord'});document.addEventListener('keydown',(e)=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;if(e.key==='ArrowRight'){e.preventDefault();if(predictNextBtn&&!predictNextBtn.disabled){predictNextBtn.click();predictNextBtn.style.transform="scale(0.95)";setTimeout(()=>predictNextBtn.style.transform="",100)}}else if(e.key==='ArrowLeft'){e.preventDefault();if(predictPrevBtn&&!predictPrevBtn.disabled){predictPrevBtn.click();predictPrevBtn.style.transform="scale(0.95)";setTimeout(()=>predictPrevBtn.style.transform="",100)}}});console.log("Checking for Sortable library...");if(typeof Sortable!=='undefined'&&savedVoicingsContainer){new Sortable(savedVoicingsContainer,{animation:150,handle:'.fa-grip-vertical',forceFallback:!0,scroll:!0,scrollSensitivity:100,scrollSpeed:20,onEnd:function(){const items=Array.from(savedVoicingsContainer.querySelectorAll('.saved-voicing-item'));const saved=JSON.parse(localStorage.getItem('savedGuitarVoicings')||'[]');const newOrder=items.map(div=>{const id=parseInt(div.dataset.id);return saved.find(s=>s.id===id)}).filter(Boolean);localStorage.setItem('savedGuitarVoicings',JSON.stringify(newOrder))}})}
+optionNumberElement.textContent='Ready. Use Strict Search or Next Chord.'});</script>
+<script type="module">
+  import { inject } from 'https://cdn.jsdelivr.net/npm/@vercel/analytics/+esm';
+  inject();
+  
+</script>
+</body>
+
+</html>
+
